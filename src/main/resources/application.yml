@@ -1,0 +1,19 @@
+spring:
+    application:
+        name: project-news
+    # Profile
+    profiles:
+        active: dev
+server:
+    port: 8080
+
+#Logging
+logging:
+    level:
+        org.mongodb: warn
+        org.springframework.data.mongodb.core.MongoTemplate: DEBUG
+        org.springframework.boot.autoconfigure.mongo.embedded: warn
+        root: info
+    file:
+        name: server.log
+

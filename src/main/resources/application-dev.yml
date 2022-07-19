@@ -1,0 +1,58 @@
+# Config Swagger  UI
+springdoc:
+    api-docs:
+        path: /api-docs
+    swagger-ui:
+        path: /swagger-ui-custom.html
+        operationsSorter: method
+
+spring:
+    # Spring Security
+#    security:
+#        user:
+#            name: admin
+#            password: 15012001
+#            roles: manager
+
+    # Database Connection properties
+    data:
+        mongodb:
+            uri: mongodb+srv://anhle1512001:Ket0328560055@clustermongochannel.lowln.mongodb.net/todo-list?retryWrites=true&w=majority
+            database: todo-list
+            auto-index-creation: true
+
+    # Config properties Mailer
+#    mail:
+#        host: smtp.gmail.com
+#        port: 587
+#        username: xxx
+#        password: xxx
+#        properties:
+#            mail:
+#                smtp:
+#                    auth: true
+#                    starttls:
+#                        enable:true
+#                debug: true
+
+    # Config properties Redis
+    cache:
+        type: redis
+    redis:
+        host: redis-11485.c295.ap-southeast-1-1.ec2.cloud.redislabs.com
+        password: Ket1512001
+        username: default
+        port: 11485
+
+# SECURITY Properties
+security:
+    jwt:
+        token:
+            secret-key: vnptInternshipSecretKey
+            expirationMs: 600
+        refreshtoken:
+            expirationMs: 604800
+
+# JWT
+com.app.JWT_AUTH_HEADER: Authorization
+com.app.token.prefix: Bearer
