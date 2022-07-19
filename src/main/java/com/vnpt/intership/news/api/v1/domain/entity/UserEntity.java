@@ -36,6 +36,8 @@ public class UserEntity extends BaseEntity {
     @NotNull
     private String password;
 
+    private AuthIdentityEntity authIdentity;
+
     @DBRef(lazy = true)
     private Set<RoleEntity> roles = new HashSet<>();
 
