@@ -1,6 +1,7 @@
 package com.vnpt.intership.news.api.v1.config;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.info.Contact;
 import io.swagger.v3.oas.annotations.info.Info;
@@ -20,7 +21,8 @@ import org.springframework.context.annotation.Configuration;
         name = "BearerAuth",
         type = SecuritySchemeType.HTTP,
         bearerFormat = "JWT",
-        scheme = "Bearer"
+        scheme = "Bearer",
+        in = SecuritySchemeIn.HEADER
 )
 public class OpenApiConfig {
 

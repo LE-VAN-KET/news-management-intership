@@ -48,11 +48,17 @@ spring:
 security:
     jwt:
         token:
-            secret-key: vnptInternshipSecretKey
-            expirationMs: 600
+            secret-key: JWTSuperSecretKey
+            expirationMs: 180000
         refreshtoken:
-            expirationMs: 604800
+            expirationMs: 300000
 
 # JWT
-com.app.JWT_AUTH_HEADER: Authorization
-com.app.token.prefix: Bearer
+com:
+    app:
+        JWT_AUTH_HEADER: Authorization
+        token:
+            prefix: Bearer
+
+keystore:
+    password: Ket0328560055

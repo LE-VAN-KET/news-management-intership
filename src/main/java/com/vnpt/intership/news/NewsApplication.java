@@ -2,12 +2,16 @@ package com.vnpt.intership.news;
 
 import com.vnpt.intership.news.api.v1.common.UserRole;
 import com.vnpt.intership.news.api.v1.domain.entity.RoleEntity;
+import com.vnpt.intership.news.api.v1.domain.entity.UserEntity;
 import com.vnpt.intership.news.api.v1.repository.RoleRepository;
+import com.vnpt.intership.news.api.v1.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.mongodb.config.EnableMongoAuditing;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 
@@ -32,8 +36,10 @@ public class NewsApplication {
                 roleUser.setRoleName(UserRole.ROLE_USER);
                 roleRepository.insert(List.of(roleAdmin, roleUser));
             }
+
         };
 
     }
+
 
 }

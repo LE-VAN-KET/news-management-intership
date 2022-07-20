@@ -10,6 +10,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.WebRequest;
 
@@ -20,6 +21,7 @@ import java.time.LocalDateTime;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseBody
     public ApiExceptionResponse handleException(MethodArgumentNotValidException methodEx, WebRequest request) {
         ApiExceptionResponse response = new ApiExceptionResponse();
 
@@ -38,13 +40,10 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(value = { UserNotFoundException.class })
+    @ResponseBody
     public ResponseEntity<?> handleExceptionChecked(Exception e) {
         log.error("EntityException: {}", e.getMessage());
-        ApiExceptionResponse response = new ApiExceptionResponse();
-        response.setCode(ErrorCode.BAD_REQUEST);
-        response.setTimestamp(LocalDateTime.now());
-        response.setStatus(HttpStatus.NOT_FOUND.value());
-        response.setMessage(e.getMessage());
+        ApiExceptionResponse response = mappingResponseException(e, ErrorCode.NOT_FOUND, HttpStatus.NOT_FOUND);
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
@@ -61,9 +60,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseBody
     public ResponseEntity<?> handleUnwantedException(Exception e, WebRequest request) {
         // Hide error details from client, only show in log
         log.error("SERVER ERROR: {}", e.getMessage());
+        e.printStackTrace();
 
         ApiExceptionResponse response = new ApiExceptionResponse();
         response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
@@ -71,6 +72,23 @@ public class GlobalExceptionHandler {
         response.setCode(ErrorCode.SERVER_ERROR);
         response.setMessage("Unknown error occurred");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
+    @ExceptionHandler(value = { TokenException.class })
+    @ResponseBody
+    public ResponseEntity<?> handleExceptionBadRequest(Exception e) {
+        log.error("Bad request: {}", e.getMessage());
+        ApiExceptionResponse response = mappingResponseException(e, ErrorCode.BAD_REQUEST, HttpStatus.BAD_REQUEST);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    private ApiExceptionResponse mappingResponseException(Exception e, ErrorCode code, HttpStatus status) {
+        ApiExceptionResponse response = new ApiExceptionResponse();
+        response.setCode(code);
+        response.setTimestamp(LocalDateTime.now());
+        response.setStatus(status.value());
+        response.setMessage(e.getMessage());
+        return response;
     }
 
 }
