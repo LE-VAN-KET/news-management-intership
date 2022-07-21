@@ -34,7 +34,7 @@ public class CategoriesEntity {
     private String description;
 
     @DBRef
-    private Set<CategoriesEntity> parents;
+    private CategoriesEntity parent;
 
     @DBRef(lazy = true)
     private Set<ArticleEntity> articles;
