@@ -32,8 +32,10 @@ public class NewsApplication {
                 roleUser.setRoleName(UserRole.ROLE_USER);
                 roleRepository.insert(List.of(roleAdmin, roleUser));
             }
+
         };
 
     }
+
 
 }

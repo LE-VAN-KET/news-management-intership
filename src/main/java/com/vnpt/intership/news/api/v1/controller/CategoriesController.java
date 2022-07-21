@@ -2,6 +2,7 @@ package com.vnpt.intership.news.api.v1.controller;
 
 import com.vnpt.intership.news.api.v1.domain.entity.CategoriesEntity;
 import com.vnpt.intership.news.api.v1.service.CategoriesService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,6 +14,7 @@ import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/category")
+@SecurityRequirement(name = "BearerAuth")
 public class CategoriesController {
     @Autowired
     CategoriesService categoriesService;
