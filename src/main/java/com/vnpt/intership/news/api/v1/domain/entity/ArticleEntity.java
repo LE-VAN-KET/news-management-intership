@@ -10,6 +10,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.MongoId;
 
 import javax.validation.constraints.Max;
+import java.util.HashSet;
+import java.util.Set;
 
 @Document(collection = "Article")
 @TypeAlias("Article")
@@ -31,5 +33,5 @@ public class ArticleEntity extends BaseEntity{
     private UserEntity user;
 
     @DBRef
-    private CategoriesEntity categories;
+    private Set<CategoriesEntity> categories = new HashSet<>();
 }

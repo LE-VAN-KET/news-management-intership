@@ -1,5 +1,6 @@
 package com.vnpt.intership.news.api.v1.config.security;
 
+import com.vnpt.intership.news.api.v1.domain.entity.UserEntity;
 import com.vnpt.intership.news.api.v1.exception.TokenException;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.SignatureException;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 
@@ -58,6 +60,25 @@ public class JwtProvider {
                 .collect(Collectors.toList()));
 
         return CompletableFuture.completedFuture(Jwts.builder().setClaims(claims).setSubject(principal.getUsername())
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
+                .signWith(SignatureAlgorithm.RS256, getPrivateKey())
+                .compact());
+    }
+
+    /**
+     * Generating a JWT combine ThreadPoolTaskExecutor
+     * @param user UserEntity
+     * @param jwtExpirationMs Time to live of JWT
+     * @return CompletableFuture<String>  contains jwt
+     * */
+    @Async("asyncExecutor")
+    public CompletableFuture<String> generateJwtToken(UserEntity user, int jwtExpirationMs) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("roles", user.getRoles().stream().map(r -> new SimpleGrantedAuthority(r.getRoleName().toString()))
+                .collect(Collectors.toList()));
+
+        return CompletableFuture.completedFuture(Jwts.builder().setClaims(claims).setSubject(user.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
                 .signWith(SignatureAlgorithm.RS256, getPrivateKey())

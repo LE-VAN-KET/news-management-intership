@@ -2,12 +2,12 @@ package com.vnpt.intership.news.api.v1.controller;
 
 
 import com.vnpt.intership.news.api.v1.domain.dto.request.LoginRequest;
+import com.vnpt.intership.news.api.v1.domain.dto.request.TokenRefreshRequest;
 import com.vnpt.intership.news.api.v1.domain.dto.response.LoginResponse;
-import com.vnpt.intership.news.api.v1.domain.entity.UserEntity;
+import com.vnpt.intership.news.api.v1.domain.dto.response.TokenRefreshResponse;
 import com.vnpt.intership.news.api.v1.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
@@ -33,6 +33,14 @@ public class AuthController {
         LoginResponse loginResponse = userService.authentication(loginRequest);
         response.addHeader(jwtAuthHeader, tokenPrefix + " " + loginResponse.getAccessToken());
         return loginResponse;
+    }
+
+    @PostMapping("/refresh-token")
+    public TokenRefreshResponse refreshToken(@Valid @RequestBody TokenRefreshRequest refreshRequest,
+                                      HttpServletResponse response) {
+        TokenRefreshResponse tokenRefreshResponse = userService.refreshToken(refreshRequest.getRefreshToken());
+        response.addHeader(jwtAuthHeader, tokenPrefix + " " + tokenRefreshResponse.getAccessToken());
+        return tokenRefreshResponse;
     }
 
 }

@@ -74,7 +74,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
-    @ExceptionHandler(value = { TokenException.class })
+    @ExceptionHandler(value = { TokenException.class, TokenRefreshException.class })
     @ResponseBody
     public ResponseEntity<?> handleExceptionBadRequest(Exception e) {
         log.error("Bad request: {}", e.getMessage());

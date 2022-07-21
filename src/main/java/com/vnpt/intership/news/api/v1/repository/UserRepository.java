@@ -12,4 +12,6 @@ import java.util.Optional;
 public interface UserRepository extends MongoRepository<UserEntity, ObjectId> {
     Optional<UserEntity> findByUsername(String username);
 
+    @Query("{'authIdentity.refreshToken':  ?0}")
+    Optional<UserEntity> findByRefreshToken(String refreshToken);
 }

@@ -49,9 +49,9 @@ security:
     jwt:
         token:
             secret-key: JWTSuperSecretKey
-            expirationMs: 180000
+            expirationMs: 300000  # 5 minutes
         refreshtoken:
-            expirationMs: 300000
+            expirationMs: 604800000 # 7 days
 
 # JWT
 com:

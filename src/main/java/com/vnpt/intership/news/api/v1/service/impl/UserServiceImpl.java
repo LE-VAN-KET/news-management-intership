@@ -3,9 +3,11 @@ package com.vnpt.intership.news.api.v1.service.impl;
 import com.vnpt.intership.news.api.v1.config.security.JwtProvider;
 import com.vnpt.intership.news.api.v1.domain.dto.request.LoginRequest;
 import com.vnpt.intership.news.api.v1.domain.dto.response.LoginResponse;
+import com.vnpt.intership.news.api.v1.domain.dto.response.TokenRefreshResponse;
 import com.vnpt.intership.news.api.v1.domain.entity.AuthIdentityEntity;
-import com.vnpt.intership.news.api.v1.domain.entity.RoleEntity;
 import com.vnpt.intership.news.api.v1.domain.entity.UserEntity;
+import com.vnpt.intership.news.api.v1.exception.TokenException;
+import com.vnpt.intership.news.api.v1.exception.TokenRefreshException;
 import com.vnpt.intership.news.api.v1.exception.UserNotFoundException;
 import com.vnpt.intership.news.api.v1.repository.UserRepository;
 import com.vnpt.intership.news.api.v1.service.UserService;
@@ -16,14 +18,16 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -70,15 +74,11 @@ public class UserServiceImpl implements UserService {
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            final CompletableFuture<String> jwt = this.jwtProvider.generateJwtToken(authentication, this.jwtExpirationMs);
-            final CompletableFuture<String> refreshJwt = this.jwtProvider.generateJwtToken(authentication, this.jwtRefreshExpirationMs);
-            CompletableFuture.allOf(jwt, refreshJwt).join();
+            Map<String, String> res = generatingAccessTokenAndRefreshToken(authentication, userEntity);
 
-            // save refresh jwt to database
-            saveRefreshToken(refreshJwt.get(), userEntity);
             List<String> roles = userEntity.getRoles().stream().map(r -> r.getRoleName().toString())
                     .collect(Collectors.toList());
-            return new LoginResponse(jwt.get(), loginRequest.getUsername(), roles);
+            return new LoginResponse(res.get("jwt"), res.get("refreshJwt"), loginRequest.getUsername(), roles);
         } catch (InterruptedException | ExecutionException e) {
             log.error("Generate Token failed: {}", e.getMessage());
             throw new RuntimeException("Server generate token failed!");
@@ -105,5 +105,48 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserEntity save(UserEntity userEntity) {
         return userRepository.save(userEntity);
+    }
+
+    @Override
+    public TokenRefreshResponse refreshToken(String refreshToken) {
+        try {
+            UserEntity userEntity = userRepository.findByRefreshToken(refreshToken)
+                    .orElseThrow(() -> new TokenRefreshException("Refresh token is not in database!"));
+
+            // validate expire refresh token
+            boolean isExpireRefreshToken = this.jwtProvider.isTokenExpired(refreshToken);
+            if (isExpireRefreshToken) {
+                throw new TokenException("Refresh token was expired. Please make a new login request");
+            }
+
+            // generating a new access token and refresh token
+            Map<String, String> res = generatingAccessTokenAndRefreshToken(null, userEntity);
+            return new TokenRefreshResponse(res.get("jwt"), res.get("refreshJwt"));
+        } catch (InterruptedException | ExecutionException e) {
+            log.error("Generate Token failed: {}", e.getMessage());
+            throw new RuntimeException("Server generate token failed!");
+        }
+    }
+
+    private Map<String, String> generatingAccessTokenAndRefreshToken(Authentication authentication, UserEntity userEntity)
+            throws ExecutionException, InterruptedException {
+        Map<String, String> response = new HashMap();
+        CompletableFuture<String> jwt;
+        CompletableFuture<String> refreshJwt;
+        if (authentication != null) {
+            jwt = this.jwtProvider.generateJwtToken(authentication, this.jwtExpirationMs);
+            refreshJwt = this.jwtProvider.generateJwtToken(authentication, this.jwtRefreshExpirationMs);
+        } else {
+            jwt = this.jwtProvider.generateJwtToken(userEntity, this.jwtExpirationMs);
+            refreshJwt = this.jwtProvider.generateJwtToken(userEntity, this.jwtRefreshExpirationMs);
+        }
+
+        CompletableFuture.allOf(jwt, refreshJwt).join();
+
+        // save refresh jwt to database
+        saveRefreshToken(refreshJwt.get(), userEntity);
+        response.put("jwt", jwt.get());
+        response.put("refreshJwt", refreshJwt.get());
+        return response;
     }
 }
