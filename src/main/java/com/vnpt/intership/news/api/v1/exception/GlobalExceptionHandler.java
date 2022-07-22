@@ -54,8 +54,14 @@ public class GlobalExceptionHandler {
 
     @ResponseStatus(value = HttpStatus.CONFLICT, reason = "Data integrity violation")
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public void conflict() {
-
+    @ResponseBody
+    public ResponseEntity<?>  conflict() {
+        ApiExceptionResponse response = new ApiExceptionResponse();
+        response.setStatus(HttpStatus.CONFLICT.value());
+        response.setTimestamp(LocalDateTime.now());
+        response.setCode(ErrorCode.CONFLICT_ERROR);
+        response.setMessage("Data conflict");
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 
     @ExceptionHandler(Exception.class)
@@ -64,7 +70,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleUnwantedException(Exception e, WebRequest request) {
         // Hide error details from client, only show in log
         log.error("SERVER ERROR: {}", e.getMessage());
-        e.printStackTrace();
 
         ApiExceptionResponse response = new ApiExceptionResponse();
         response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
@@ -74,7 +79,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
-    @ExceptionHandler(value = { TokenException.class, TokenRefreshException.class })
+    @ExceptionHandler(value = { CategoryException.class, TokenException.class, TokenRefreshException.class })
     @ResponseBody
     public ResponseEntity<?> handleExceptionBadRequest(Exception e) {
         log.error("Bad request: {}", e.getMessage());

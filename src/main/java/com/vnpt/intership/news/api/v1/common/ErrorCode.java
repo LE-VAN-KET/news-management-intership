@@ -6,5 +6,6 @@ public enum ErrorCode {
     ACCESS_DENIED,
     NOT_FOUND,
     SERVER_ERROR,
-    ACCOUNT_LOCKED
+    ACCOUNT_LOCKED,
+    CONFLICT_ERROR
 }
