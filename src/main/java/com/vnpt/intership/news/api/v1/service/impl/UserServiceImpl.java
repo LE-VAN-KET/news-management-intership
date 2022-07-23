@@ -20,11 +20,15 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
+import com.vnpt.intership.news.api.v1.domain.dto.request.RegisterRequest;
+import com.vnpt.intership.news.api.v1.exception.UserAlreadyExistException;
+import com.vnpt.intership.news.api.v1.repository.RoleRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.HashSet;
 
 import java.util.HashMap;
 import java.util.List;
@@ -53,6 +57,9 @@ public class UserServiceImpl implements UserService {
 
     @Value("${security.jwt.refreshtoken.expirationMs}")
     private int jwtRefreshExpirationMs;
+
+    @Autowired
+    private RoleRepository roleRepository;
 
     @Override
     public LoginResponse authentication(LoginRequest loginRequest) {
@@ -104,11 +111,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserEntity save(UserEntity userEntity) {
-        return userRepository.save(userEntity);
-    }
-
-    @Override
     public TokenRefreshResponse refreshToken(String refreshToken) {
         try {
             UserEntity userEntity = userRepository.findByRefreshToken(refreshToken)
@@ -156,11 +158,36 @@ public class UserServiceImpl implements UserService {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String username = null;
         if (principal instanceof UserDetails) {
-            username = ((UserDetails)principal).getUsername();
+            username = ((UserDetails) principal).getUsername();
         } else {
             username = principal.toString();
         }
         return userRepository.findByUsername(username).orElseThrow(
                 () -> new UnAuthorizationException("User Unauthorized"));
+    }
+
+    @Override
+    public UserEntity registerNewUserAccount(RegisterRequest registerRequest){
+        if (existsByEmail(registerRequest.getEmail()) || existsByUsername(registerRequest.getUsername())) {
+            throw new UserAlreadyExistException("Email/ Username already exists");
+        };
+
+        UserEntity userEntity = new UserEntity();
+        userEntity.setUsername(registerRequest.getUsername());
+        userEntity.setEmail(registerRequest.getEmail());
+        userEntity.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
+        userEntity.setRoles(new HashSet<>(roleRepository.findAll()));
+
+        return userRepository.save(userEntity);
+    }
+
+    @Override
+    public Boolean existsByUsername(String username) {
+        return userRepository.findByUsername(username).isPresent();
+    }
+
+    @Override
+    public Boolean existsByEmail(String email) {
+        return userRepository.findByEmail(email).isPresent();
     }
 }
