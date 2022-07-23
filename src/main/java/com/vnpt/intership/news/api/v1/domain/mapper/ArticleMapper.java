@@ -3,9 +3,11 @@ package com.vnpt.intership.news.api.v1.domain.mapper;
 import com.vnpt.intership.news.api.v1.domain.dto.Article;
 import com.vnpt.intership.news.api.v1.domain.entity.ArticleEntity;
 import org.springframework.beans.BeanUtils;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 
+@Component
 public class ArticleMapper extends BaseMapper<ArticleEntity, Article> {
     private CategoriesMapper categoriesMapper;
 

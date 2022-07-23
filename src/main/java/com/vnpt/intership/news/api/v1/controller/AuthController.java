@@ -1,6 +1,5 @@
 package com.vnpt.intership.news.api.v1.controller;
 
-
 import com.vnpt.intership.news.api.v1.domain.dto.request.LoginRequest;
 import com.vnpt.intership.news.api.v1.domain.dto.request.TokenRefreshRequest;
 import com.vnpt.intership.news.api.v1.domain.dto.response.LoginResponse;
@@ -12,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-
 
 @RestController
 @RequestMapping(value = "/api/v1/auth")

@@ -87,6 +87,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
+    @ExceptionHandler(value = { UnAuthorizationException.class })
+    @ResponseBody
+    public ResponseEntity<?> handleExceptionUnauthorized(Exception e) {
+        log.error("Unauthorized request: {}", e.getMessage());
+        ApiExceptionResponse response = mappingResponseException(e, ErrorCode.UNAUTHORIZED, HttpStatus.UNAUTHORIZED);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
     private ApiExceptionResponse mappingResponseException(Exception e, ErrorCode code, HttpStatus status) {
         ApiExceptionResponse response = new ApiExceptionResponse();
         response.setCode(code);

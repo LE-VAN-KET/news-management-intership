@@ -5,6 +5,8 @@ import com.vnpt.intership.news.api.v1.domain.dto.request.CreateCategory;
 import com.vnpt.intership.news.api.v1.domain.entity.CategoriesEntity;
 import org.bson.types.ObjectId;
 
+import java.util.List;
+
 public interface CategoriesService {
     void save(CategoriesEntity categories);
     CategoriesEntity findByName(String name);
@@ -12,4 +14,7 @@ public interface CategoriesService {
     Category updateCategoryById(ObjectId id, Category category);
 
     boolean existCategoryByCategoryKey(String categoryKey);
+
+    List<CategoriesEntity> findCategoriesByCategoryKeys(List<String> categoryKeys);
+
 }

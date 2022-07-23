@@ -8,6 +8,7 @@ import com.vnpt.intership.news.api.v1.domain.entity.AuthIdentityEntity;
 import com.vnpt.intership.news.api.v1.domain.entity.UserEntity;
 import com.vnpt.intership.news.api.v1.exception.TokenException;
 import com.vnpt.intership.news.api.v1.exception.TokenRefreshException;
+import com.vnpt.intership.news.api.v1.exception.UnAuthorizationException;
 import com.vnpt.intership.news.api.v1.exception.UserNotFoundException;
 import com.vnpt.intership.news.api.v1.repository.UserRepository;
 import com.vnpt.intership.news.api.v1.service.UserService;
@@ -148,5 +149,18 @@ public class UserServiceImpl implements UserService {
         response.put("jwt", jwt.get());
         response.put("refreshJwt", refreshJwt.get());
         return response;
+    }
+
+    @Override
+    public UserEntity getCurrentUser() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username = null;
+        if (principal instanceof UserDetails) {
+            username = ((UserDetails)principal).getUsername();
+        } else {
+            username = principal.toString();
+        }
+        return userRepository.findByUsername(username).orElseThrow(
+                () -> new UnAuthorizationException("User Unauthorized"));
     }
 }

@@ -74,6 +74,13 @@
             <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
 
+<!--        MinIO Cloud Storage-->
+        <dependency>
+            <groupId>io.minio</groupId>
+            <artifactId>minio</artifactId>
+            <version>8.4.3</version>
+        </dependency>
+
 <!--        Testing -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

@@ -11,6 +11,9 @@ import lombok.Setter;
 import org.bson.types.ObjectId;
 
 import javax.validation.constraints.Max;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,7 +29,9 @@ public class Article {
 
     private String thumbnailUrl;
 
-    @Max(1024)
+    @NotNull
+    @NotEmpty(message = "content is required")
+    @Size(max = 1024)
     private String content;
 
     private UserEntity user;

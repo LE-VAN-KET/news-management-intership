@@ -10,6 +10,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.MongoId;
 
 import javax.validation.constraints.Max;
+import javax.validation.constraints.Size;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -26,12 +27,13 @@ public class ArticleEntity extends BaseEntity{
 
     private String thumbnailUrl;
 
-    @Max(1024)
+    @Size(max = 1024)
     private String content;
 
-    @DBRef(lazy = true)
+    @DBRef
     private UserEntity user;
 
-    @DBRef
+    @DBRef(lazy = true)
     private Set<CategoriesEntity> categories = new HashSet<>();
+
 }
