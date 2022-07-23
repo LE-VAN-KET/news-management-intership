@@ -6,7 +6,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ValidCategoryNameValidator implements ConstraintValidator<ValidCategoryName, String> {
-    private static final String CATEGORY_NAME_PATTERN = "^[a-zA-Z0-9\\s]{1,100}$";
+    private static final String CATEGORY_NAME_PATTERN = "^[a-zA-Z\\d\\s]{1,100}$";
     @Override
     public boolean isValid(String categoryName, ConstraintValidatorContext constraintValidatorContext) {
         Pattern pattern = Pattern.compile(CATEGORY_NAME_PATTERN);

@@ -35,6 +35,11 @@ spring:
 #                        enable:true
 #                debug: true
 
+    servlet:
+        multipart:
+            max-file-size: 2MB
+            enabled: true
+
     # Config properties Redis
     cache:
         type: redis
@@ -62,3 +67,13 @@ com:
 
 keystore:
     password: Ket0328560055
+
+# Minio
+
+minio:
+    bucket:
+        name: minio-uploads-image-news-post
+    access:
+        key: admin
+        secret: password@123
+    url: http://127.0.0.1:9000

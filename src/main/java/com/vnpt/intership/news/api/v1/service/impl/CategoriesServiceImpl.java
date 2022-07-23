@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
+import java.util.List;
+
 @Service
 public class CategoriesServiceImpl implements CategoriesService {
     @Autowired
@@ -86,5 +88,10 @@ public class CategoriesServiceImpl implements CategoriesService {
                 throw new CategoryException("Category Key " + categoryKey + " already exist");
             }
         }
+    }
+
+    @Override
+    public List<CategoriesEntity> findCategoriesByCategoryKeys(List<String> categoryKeys) {
+        return categoriesRepository.findAllByCategoryKey(categoryKeys);
     }
 }

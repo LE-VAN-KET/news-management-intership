@@ -11,4 +11,6 @@ public interface UserService {
     UserEntity save(UserEntity userEntity);
 
     TokenRefreshResponse refreshToken(String refreshToken);
+
+    UserEntity getCurrentUser();
 }
