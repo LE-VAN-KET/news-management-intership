@@ -10,7 +10,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 @Setter
 @NoArgsConstructor
 public class AuthIdentityEntity {
-    // time to live refresh token 7 days
+    // time to live refresh token 5 minutes
     @Indexed
     private String refreshToken;
 

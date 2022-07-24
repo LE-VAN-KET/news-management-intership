@@ -1,6 +1,7 @@
 package com.vnpt.intership.news.api.v1.exception;
 
 import com.vnpt.intership.news.api.v1.common.ErrorCode;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -21,8 +22,7 @@ import java.time.LocalDateTime;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    @ResponseBody
-    public ApiExceptionResponse handleException(MethodArgumentNotValidException methodEx, WebRequest request) {
+    public ResponseEntity<ApiExceptionResponse> handleException(MethodArgumentNotValidException methodEx, WebRequest request) {
         ApiExceptionResponse response = new ApiExceptionResponse();
 
         methodEx.getBindingResult().getAllErrors().forEach(error -> {
@@ -36,10 +36,11 @@ public class GlobalExceptionHandler {
         response.setStatus(HttpStatus.BAD_REQUEST.value());
         response.setMessage(ErrorCode.BAD_REQUEST.toString());
 
-        return response;
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
-    @ExceptionHandler(value = { UserNotFoundException.class })
+    @ExceptionHandler(value = { UserNotFoundException.class, UserAlreadyExistException.class,
+            RoleNotFoundException.class })
     @ResponseBody
     public ResponseEntity<?> handleExceptionChecked(Exception e) {
         log.error("EntityException: {}", e.getMessage());
@@ -48,6 +49,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler({DataAccessException.class})
+    @ResponseBody
     public String databaseException() {
         return "database error";
     }
