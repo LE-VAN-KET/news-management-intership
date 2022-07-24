@@ -13,6 +13,7 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @RestController
 @SecurityRequirement(name = "BearerAuth")
@@ -20,6 +21,20 @@ import javax.validation.Valid;
 public class CategoriesController {
     @Autowired
     CategoriesService categoriesService;
+
+
+
+    @RequestMapping(value = "/deleteCategory",method = RequestMethod.POST)
+    public List<CategoriesEntity> deleteCategory(@RequestParam ObjectId id ){
+        try {
+            categoriesService.deleteById(id);
+            return categoriesService.getAll();
+        }
+        catch (Exception e){
+            System.out.println(e);
+            return null;
+        }
+    }
 
     @RequestMapping(value = "/addCategory",method = RequestMethod.POST)
     public CategoriesEntity addCategory(@Valid @RequestBody CategoriesEntity category ){

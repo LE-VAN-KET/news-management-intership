@@ -10,6 +10,10 @@ import java.util.List;
 public interface CategoriesService {
     void save(CategoriesEntity categories);
     CategoriesEntity findByName(String name);
+
+    List<CategoriesEntity> getAll();
+
+    void deleteById(ObjectId id);
     Category addCategory(CreateCategory category);
     Category updateCategoryById(ObjectId id, Category category);
 
