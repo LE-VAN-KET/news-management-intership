@@ -1,8 +1,10 @@
 package com.vnpt.intership.news.api.v1.controller;
 
+import com.vnpt.intership.news.api.v1.domain.dto.Article;
 import com.vnpt.intership.news.api.v1.domain.dto.request.CreateArticle;
 import com.vnpt.intership.news.api.v1.service.ArticleService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -28,4 +30,11 @@ public class ArticleController {
                                         @RequestPart @Valid @NotNull @NotBlank MultipartFile thumbnail) {
         return ResponseEntity.status(201).body(articleService.addArticle(createArticle, thumbnail));
     }
+
+
+        @PutMapping("/{articleId}")
+        public ResponseEntity<?> editCategory(@PathVariable("categoryId") String categoryId,
+                                              @Valid @RequestBody Article article) {
+            return ResponseEntity.ok(articleService.updateArticleById(new ObjectId(categoryId), article));
+        }
 }

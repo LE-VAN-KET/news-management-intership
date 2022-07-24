@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.vnpt.intership.news.api.v1.domain.entity.CategoriesEntity;
 import com.vnpt.intership.news.api.v1.domain.entity.UserEntity;
+import com.vnpt.intership.news.api.v1.util.validator.ValidArticleTitle;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,8 +26,13 @@ public class Article {
     @JsonSerialize(using= ToStringSerializer.class)
     private ObjectId id;
 
+    @NotNull
+    @NotEmpty(message = "title is required")
+    @ValidArticleTitle
     private String title;
 
+    @NotNull
+    @NotEmpty(message = "thumbnailUrl is required")
     private String thumbnailUrl;
 
     @NotNull
