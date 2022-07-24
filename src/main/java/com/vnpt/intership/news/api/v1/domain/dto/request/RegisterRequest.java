@@ -2,6 +2,8 @@ package com.vnpt.intership.news.api.v1.domain.dto.request;
 
 import com.vnpt.intership.news.api.v1.util.validator.PasswordMatches;
 import com.vnpt.intership.news.api.v1.util.validator.ValidEmail;
+import com.vnpt.intership.news.api.v1.util.validator.ValidPassword;
+import com.vnpt.intership.news.api.v1.util.validator.ValidUsername;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,11 +20,14 @@ import javax.validation.constraints.NotNull;
 public class RegisterRequest {
     @NotNull
     @NotEmpty
+    @ValidUsername
     private String username;
 
     @NotNull
     @NotEmpty
+    @ValidPassword
     private String password;
+
     private String matchingPassword;
 
     @ValidEmail

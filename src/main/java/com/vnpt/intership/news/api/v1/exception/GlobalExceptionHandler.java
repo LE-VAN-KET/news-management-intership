@@ -39,7 +39,8 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
-    @ExceptionHandler(value = { UserNotFoundException.class, UserAlreadyExistException.class })
+    @ExceptionHandler(value = { UserNotFoundException.class, UserAlreadyExistException.class,
+            RoleNotFoundException.class })
     @ResponseBody
     public ResponseEntity<?> handleExceptionChecked(Exception e) {
         log.error("EntityException: {}", e.getMessage());

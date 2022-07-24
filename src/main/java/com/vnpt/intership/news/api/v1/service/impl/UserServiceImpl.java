@@ -1,15 +1,14 @@
 package com.vnpt.intership.news.api.v1.service.impl;
 
+import com.vnpt.intership.news.api.v1.common.UserRole;
 import com.vnpt.intership.news.api.v1.config.security.JwtProvider;
 import com.vnpt.intership.news.api.v1.domain.dto.request.LoginRequest;
 import com.vnpt.intership.news.api.v1.domain.dto.response.LoginResponse;
 import com.vnpt.intership.news.api.v1.domain.dto.response.TokenRefreshResponse;
 import com.vnpt.intership.news.api.v1.domain.entity.AuthIdentityEntity;
+import com.vnpt.intership.news.api.v1.domain.entity.RoleEntity;
 import com.vnpt.intership.news.api.v1.domain.entity.UserEntity;
-import com.vnpt.intership.news.api.v1.exception.TokenException;
-import com.vnpt.intership.news.api.v1.exception.TokenRefreshException;
-import com.vnpt.intership.news.api.v1.exception.UnAuthorizationException;
-import com.vnpt.intership.news.api.v1.exception.UserNotFoundException;
+import com.vnpt.intership.news.api.v1.exception.*;
 import com.vnpt.intership.news.api.v1.repository.UserRepository;
 import com.vnpt.intership.news.api.v1.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -22,17 +21,13 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import com.vnpt.intership.news.api.v1.domain.dto.request.RegisterRequest;
-import com.vnpt.intership.news.api.v1.exception.UserAlreadyExistException;
 import com.vnpt.intership.news.api.v1.repository.RoleRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
+import java.util.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -99,7 +94,6 @@ public class UserServiceImpl implements UserService {
         AuthIdentityEntity authIdentity = userEntity.getAuthIdentity();
         if (authIdentity == null) {
             authIdentity = new AuthIdentityEntity();
-
         }
         authIdentity.setRefreshToken(refreshToken);
         userEntity.setAuthIdentity(authIdentity);
@@ -168,15 +162,21 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserEntity registerNewUserAccount(RegisterRequest registerRequest){
-        if (existsByEmail(registerRequest.getEmail()) || existsByUsername(registerRequest.getUsername())) {
-            throw new UserAlreadyExistException("Email/ Username already exists");
+        if (existsByUsername(registerRequest.getUsername())) {
+            throw new UserAlreadyExistException("Username already exists");
+        };
+
+        if (existsByEmail(registerRequest.getEmail())) {
+            throw new UserAlreadyExistException("Email already exists");
         };
 
         UserEntity userEntity = new UserEntity();
         userEntity.setUsername(registerRequest.getUsername());
         userEntity.setEmail(registerRequest.getEmail());
         userEntity.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
-        userEntity.setRoles(new HashSet<>(roleRepository.findAll()));
+        RoleEntity roleEntity = roleRepository.findByRoleName(UserRole.ROLE_USER.toString())
+                        .orElseThrow(() -> new RoleNotFoundException("Role User not found"));
+        userEntity.setRoles(Set.of(roleEntity));
 
         return userRepository.save(userEntity);
     }
