@@ -6,13 +6,16 @@ import com.vnpt.intership.news.api.v1.domain.dto.response.LoginResponse;
 import com.vnpt.intership.news.api.v1.domain.dto.response.TokenRefreshResponse;
 
 import com.vnpt.intership.news.api.v1.domain.dto.request.RegisterRequest;
+import com.vnpt.intership.news.api.v1.domain.entity.DeviceMeta;
 import com.vnpt.intership.news.api.v1.exception.UserAlreadyExistException;
+import com.vnpt.intership.news.api.v1.service.DeviceService;
 import com.vnpt.intership.news.api.v1.service.UserService;
 import com.vnpt.intership.news.api.v1.util.validator.ValidEmail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -38,18 +41,23 @@ public class AuthController {
     @Value("${com.app.token.prefix}")
     private String tokenPrefix;
 
+    @Autowired
+    private DeviceService deviceService;
+
     @PostMapping("/login")
     public LoginResponse signIn(@Valid @RequestBody LoginRequest loginRequest,
-                                HttpServletResponse response) {
-        LoginResponse loginResponse = userService.authentication(loginRequest);
+                                HttpServletResponse response, HttpServletRequest request) {
+        DeviceMeta deviceMeta = deviceService.extractDevice(request);
+        LoginResponse loginResponse = userService.authentication(loginRequest, deviceMeta);
         response.addHeader(jwtAuthHeader, tokenPrefix + " " + loginResponse.getAccessToken());
         return loginResponse;
     }
 
     @PostMapping("/refresh-token")
     public TokenRefreshResponse refreshToken(@Valid @RequestBody TokenRefreshRequest refreshRequest,
-                                      HttpServletResponse response) {
-        TokenRefreshResponse tokenRefreshResponse = userService.refreshToken(refreshRequest.getRefreshToken());
+                                      HttpServletResponse response, HttpServletRequest request) {
+        DeviceMeta deviceMeta = deviceService.extractDevice(request);
+        TokenRefreshResponse tokenRefreshResponse = userService.refreshToken(refreshRequest.getRefreshToken(), deviceMeta);
         response.addHeader(jwtAuthHeader, tokenPrefix + " " + tokenRefreshResponse.getAccessToken());
         return tokenRefreshResponse;
     }
