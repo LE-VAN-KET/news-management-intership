@@ -6,6 +6,7 @@ import com.vnpt.intership.news.api.v1.domain.dto.request.LoginRequest;
 import com.vnpt.intership.news.api.v1.domain.dto.response.LoginResponse;
 import com.vnpt.intership.news.api.v1.domain.dto.response.TokenRefreshResponse;
 import com.vnpt.intership.news.api.v1.domain.entity.AuthIdentityEntity;
+import com.vnpt.intership.news.api.v1.domain.entity.DeviceMeta;
 import com.vnpt.intership.news.api.v1.domain.entity.RoleEntity;
 import com.vnpt.intership.news.api.v1.domain.entity.UserEntity;
 import com.vnpt.intership.news.api.v1.exception.*;
@@ -32,6 +33,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
+
 @Slf4j
 @Service
 public class UserServiceImpl implements UserService {
@@ -57,7 +59,7 @@ public class UserServiceImpl implements UserService {
     private RoleRepository roleRepository;
 
     @Override
-    public LoginResponse authentication(LoginRequest loginRequest) {
+    public LoginResponse authentication(LoginRequest loginRequest, DeviceMeta deviceMeta) {
         try {
             UserEntity userEntity = userRepository.findByUsername(loginRequest.getUsername().trim())
                     .orElseThrow(() -> new UserNotFoundException("Username or password wrong!"));
@@ -77,7 +79,7 @@ public class UserServiceImpl implements UserService {
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            Map<String, String> res = generatingAccessTokenAndRefreshToken(authentication, userEntity);
+            Map<String, String> res = generatingAccessTokenAndRefreshToken(authentication, userEntity, deviceMeta);
 
             List<String> roles = userEntity.getRoles().stream().map(r -> r.getRoleName().toString())
                     .collect(Collectors.toList());
@@ -90,12 +92,26 @@ public class UserServiceImpl implements UserService {
 
     @Async("asyncExecutor")
     @Transactional(rollbackFor = {Exception.class})
-    public void saveRefreshToken(String refreshToken, UserEntity userEntity) {
+    public void saveRefreshToken(String refreshToken, UserEntity userEntity, DeviceMeta deviceMeta) {
         AuthIdentityEntity authIdentity = userEntity.getAuthIdentity();
         if (authIdentity == null) {
             authIdentity = new AuthIdentityEntity();
+        } else {
+            Set<DeviceMeta> deviceMetas = authIdentity.getDeviceMetas().stream()
+                    .map(device -> {
+                        if (device.getLocation().equals(deviceMeta.getLocation())
+                                && device.getDeviceDetails().equals(deviceMeta.getDeviceDetails())) {
+                            device.setRefreshToken(refreshToken);
+                        }
+                        return device;
+                    }).collect(Collectors.toSet());
+            authIdentity.setDeviceMetas(deviceMetas);
         }
-        authIdentity.setRefreshToken(refreshToken);
+
+        deviceMeta.setRefreshToken(refreshToken);
+        authIdentity.getDeviceMetas().add(deviceMeta);
+
+//        authIdentity.setRefreshToken(refreshToken);
         userEntity.setAuthIdentity(authIdentity);
         userRepository.save(userEntity);
     }
@@ -105,9 +121,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public TokenRefreshResponse refreshToken(String refreshToken) {
+    public TokenRefreshResponse refreshToken(String refreshToken, DeviceMeta deviceMeta) {
         try {
-            UserEntity userEntity = userRepository.findByRefreshToken(refreshToken)
+            deviceMeta.setRefreshToken(refreshToken);
+            UserEntity userEntity = userRepository.findByDeviceMeta(deviceMeta)
                     .orElseThrow(() -> new TokenRefreshException("Refresh token is not in database!"));
 
             // validate expire refresh token
@@ -117,7 +134,7 @@ public class UserServiceImpl implements UserService {
             }
 
             // generating a new access token and refresh token
-            Map<String, String> res = generatingAccessTokenAndRefreshToken(null, userEntity);
+            Map<String, String> res = generatingAccessTokenAndRefreshToken(null, userEntity, deviceMeta);
             return new TokenRefreshResponse(res.get("jwt"), res.get("refreshJwt"));
         } catch (InterruptedException | ExecutionException e) {
             log.error("Generate Token failed: {}", e.getMessage());
@@ -125,7 +142,8 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private Map<String, String> generatingAccessTokenAndRefreshToken(Authentication authentication, UserEntity userEntity)
+    private Map<String, String> generatingAccessTokenAndRefreshToken(Authentication authentication, UserEntity userEntity,
+                                                                     DeviceMeta deviceMeta)
             throws ExecutionException, InterruptedException {
         Map<String, String> response = new HashMap();
         CompletableFuture<String> jwt;
@@ -141,7 +159,7 @@ public class UserServiceImpl implements UserService {
         CompletableFuture.allOf(jwt, refreshJwt).join();
 
         // save refresh jwt to database
-        saveRefreshToken(refreshJwt.get(), userEntity);
+        saveRefreshToken(refreshJwt.get(), userEntity, deviceMeta);
         response.put("jwt", jwt.get());
         response.put("refreshJwt", refreshJwt.get());
         return response;

@@ -1,5 +1,6 @@
 package com.vnpt.intership.news.api.v1.config.security;
 
+import com.maxmind.geoip2.DatabaseReader;
 import com.vnpt.intership.news.api.v1.service.impl.UserDetailServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -16,12 +17,17 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.util.ResourceUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import ua_parser.Parser;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -41,7 +47,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     public void configure(WebSecurity web) throws Exception {
         super.configure(web);
-        web.ignoring().antMatchers("/api-docs/**", "/swagger-ui-custom.html", "/swagger-ui/**");
+        web.ignoring().antMatchers("/resources/**")
+                .antMatchers("/api-docs/**", "/swagger-ui-custom.html", "/swagger-ui/**");
     }
 
     @Bean
@@ -78,14 +85,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/v1/auth/**").permitAll()
                 .antMatchers("/api/v1/categories/**").permitAll()
                 .antMatchers("/api/v1/test/**").permitAll()
-                .anyRequest().authenticated()
-                .and()
-                .logout()
-                .permitAll();
+                .anyRequest().authenticated();
 
         // Add jwt token filter to validate tokens with every request
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
     }
+
+
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -94,10 +100,21 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         configuration.setAllowedOrigins(Collections.singletonList("*"));
         configuration.setAllowedHeaders(Collections.singletonList("*"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setExposedHeaders(Collections.singletonList("Authorization"));
+        configuration.setExposedHeaders(List.of("Authorization", ""));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    @Bean
+    public Parser uaParser() throws IOException {
+        return new Parser();
+    }
+
+    @Bean(name="GeoIPCity")
+    public DatabaseReader databaseReader() throws IOException {
+        File database = ResourceUtils.getFile("classpath:maxmind/GeoLite2-City.mmdb");
+        return new DatabaseReader.Builder(database).build();
     }
 
 }

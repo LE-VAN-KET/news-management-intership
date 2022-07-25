@@ -15,6 +15,8 @@
     <description>news</description>
     <properties>
         <java.version>11</java.version>
+        <uap-java.version>1.4.0</uap-java.version>
+        <geoip2.version>2.15.0</geoip2.version>
     </properties>
     <dependencies>
         <dependency>
@@ -79,6 +81,19 @@
             <groupId>io.minio</groupId>
             <artifactId>minio</artifactId>
             <version>8.4.3</version>
+        </dependency>
+
+        <!-- User Agent parser -->
+        <dependency>
+            <groupId>com.github.ua-parser</groupId>
+            <artifactId>uap-java</artifactId>
+            <version>${uap-java.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.maxmind.geoip2</groupId>
+            <artifactId>geoip2</artifactId>
+            <version>${geoip2.version}</version>
         </dependency>
 
 <!--        Testing -->
