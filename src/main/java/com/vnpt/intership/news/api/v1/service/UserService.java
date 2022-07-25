@@ -23,4 +23,6 @@ public interface UserService {
 
     Boolean existsByEmail(String email);
 
+    void updateRefreshTokenByUsername(String username, DeviceMeta deviceMeta);
+
 }

@@ -7,12 +7,15 @@ import com.vnpt.intership.news.api.v1.domain.dto.response.TokenRefreshResponse;
 
 import com.vnpt.intership.news.api.v1.domain.dto.request.RegisterRequest;
 import com.vnpt.intership.news.api.v1.domain.entity.DeviceMeta;
-import com.vnpt.intership.news.api.v1.exception.UserAlreadyExistException;
+import com.vnpt.intership.news.api.v1.domain.entity.UserEntity;
 import com.vnpt.intership.news.api.v1.service.DeviceService;
 import com.vnpt.intership.news.api.v1.service.UserService;
-import com.vnpt.intership.news.api.v1.util.validator.ValidEmail;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -25,9 +28,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.validation.Valid;
 
-
+@CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping(value = "/api/v1/auth")
 public class AuthController {
@@ -69,4 +71,18 @@ public class AuthController {
         return new ResponseEntity<>("User registered successfully", HttpStatus.OK);
 
     }
+
+    @GetMapping("/logout")
+    @SecurityRequirement(name = "BearerAuth")
+    public void logout(HttpServletRequest request, HttpServletResponse response) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null) {
+            UserEntity userEntity = userService.getCurrentUser();
+            DeviceMeta deviceMeta = deviceService.extractDevice(request);
+            // delete refresh token
+            userService.updateRefreshTokenByUsername(userEntity.getUsername(), deviceMeta);
+            new SecurityContextLogoutHandler().logout(request, response, authentication);
+        }
+    }
+
 }
