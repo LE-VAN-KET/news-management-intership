@@ -8,6 +8,7 @@ import com.vnpt.intership.news.api.v1.domain.entity.DeviceMeta;
 import com.vnpt.intership.news.api.v1.service.DeviceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import ua_parser.Client;
 import ua_parser.Parser;
@@ -16,6 +17,8 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 @Slf4j
 @Component
@@ -33,19 +36,24 @@ public class DeviceServiceImpl implements DeviceService {
     public DeviceMeta extractDevice(HttpServletRequest request){
         try {
             String ip = extractIp(request);
-            String location = getIpLocation(ip);
-            String deviceDetails = getDeviceDetails(request.getHeader("user-agent"));
+            CompletableFuture<String> location = getIpLocation(ip);
+            CompletableFuture<String> deviceDetails = getDeviceDetails(request.getHeader("user-agent"));
+
+            CompletableFuture.allOf(location, deviceDetails).join();
+
             DeviceMeta deviceMeta = new DeviceMeta();
-            deviceMeta.setLocation(location);
-            deviceMeta.setDeviceDetails(deviceDetails);
+            deviceMeta.setLocation(location.get());
+            deviceMeta.setDeviceDetails(deviceDetails.get());
             return deviceMeta;
         } catch (IOException | GeoIp2Exception e ) {
             log.error("Extract Info Device ERROR: {}", e.getMessage());
             throw new RuntimeException("Extract Info Device ERROR");
+        } catch (ExecutionException | InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    private String extractIp(HttpServletRequest request) {
+    public String extractIp(HttpServletRequest request) {
         String clientIp;
         String clientXForwardedForIp = request.getHeader("x-forwarded-for");
         if (Objects.nonNull(clientXForwardedForIp)) {
@@ -54,7 +62,7 @@ public class DeviceServiceImpl implements DeviceService {
             clientIp = request.getRemoteAddr();
         }
 
-        if ("0:0:0:0:0:0:0:1".equals(clientIp)) {
+        if ("0:0:0:0:0:0:0:1".equals(clientIp) || "127.0.0.1".equals(clientIp)) {
             clientIp = "20.205.243.166"; // test localhost
         }
 
@@ -65,7 +73,8 @@ public class DeviceServiceImpl implements DeviceService {
         return header.split(" *, *")[0];
     }
 
-    private String getDeviceDetails(String userAgent) {
+    @Async("asyncExecutor")
+    public CompletableFuture<String> getDeviceDetails(String userAgent) {
         String deviceDetails = "UNKNOWN";
 
         Client client = parser.parse(userAgent);
@@ -74,10 +83,11 @@ public class DeviceServiceImpl implements DeviceService {
                     " - " + client.os.family + " " + client.os.major + "." + client.os.minor;
         }
 
-        return deviceDetails;
+        return CompletableFuture.completedFuture(deviceDetails);
     }
 
-    private String getIpLocation(String ip) throws IOException, GeoIp2Exception {
+    @Async("asyncExecutor")
+    public CompletableFuture<String> getIpLocation(String ip) throws IOException, GeoIp2Exception {
 
         String location = "UNKNOWN";
 
@@ -89,7 +99,7 @@ public class DeviceServiceImpl implements DeviceService {
             location = cityResponse.getCity().getName();
         }
 
-        return location;
+        return CompletableFuture.completedFuture(location);
     }
 
 }

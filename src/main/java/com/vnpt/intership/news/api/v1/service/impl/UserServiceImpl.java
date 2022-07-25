@@ -10,6 +10,7 @@ import com.vnpt.intership.news.api.v1.domain.entity.DeviceMeta;
 import com.vnpt.intership.news.api.v1.domain.entity.RoleEntity;
 import com.vnpt.intership.news.api.v1.domain.entity.UserEntity;
 import com.vnpt.intership.news.api.v1.exception.*;
+import com.vnpt.intership.news.api.v1.repository.CustomUserRepository;
 import com.vnpt.intership.news.api.v1.repository.UserRepository;
 import com.vnpt.intership.news.api.v1.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -57,6 +58,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private RoleRepository roleRepository;
+
+    @Autowired
+    private CustomUserRepository customUserRepository;
 
     @Override
     public LoginResponse authentication(LoginRequest loginRequest, DeviceMeta deviceMeta) {
@@ -207,5 +211,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public Boolean existsByEmail(String email) {
         return userRepository.findByEmail(email).isPresent();
+    }
+
+    @Override
+    @Transactional(rollbackFor = {Exception.class})
+    public void updateRefreshTokenByUsername(String username, DeviceMeta deviceMeta) {
+        customUserRepository.findAndUpdateRefreshTokenByUsername(username, deviceMeta);
     }
 }
