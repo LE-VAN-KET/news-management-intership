@@ -7,6 +7,7 @@ import com.vnpt.intership.news.api.v1.domain.dto.request.CreateArticle;
 import com.vnpt.intership.news.api.v1.domain.entity.ArticleEntity;
 import com.vnpt.intership.news.api.v1.domain.entity.CategoriesEntity;
 import com.vnpt.intership.news.api.v1.domain.mapper.ArticleMapper;
+import com.vnpt.intership.news.api.v1.exception.ArticleNotFoundException;
 import com.vnpt.intership.news.api.v1.exception.CategoryException;
 import com.vnpt.intership.news.api.v1.repository.ArticleRepository;
 import com.vnpt.intership.news.api.v1.repository.CategoriesRepository;
@@ -103,4 +104,10 @@ public class ArticleServiceImpl implements ArticleService {
         }
     }
 
+    @Override
+    public Article getDetailArticle(ObjectId id) {
+        ArticleEntity articleEntity = articleRepository.findById(id)
+                .orElseThrow(() -> new ArticleNotFoundException("Article with id :" + id + " not found"));
+        return articleMapper.convertToDto(articleEntity);
+    }
 }

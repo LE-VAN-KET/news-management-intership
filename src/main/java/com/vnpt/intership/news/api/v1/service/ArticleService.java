@@ -13,4 +13,6 @@ public interface ArticleService {
     Article updateArticleById(ObjectId id, Article article);
 
     boolean existArticleByTitle(String title);
+
+    Article getDetailArticle(ObjectId id);
 }

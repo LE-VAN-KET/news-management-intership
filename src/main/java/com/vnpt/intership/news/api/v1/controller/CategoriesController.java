@@ -13,6 +13,8 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @RestController
@@ -58,7 +60,7 @@ public class CategoriesController {
 
     @PutMapping("/{categoryId}")
 //    @Secured("hasAnyRole('ROLE_USER')")
-    public ResponseEntity<?> editCategory(@PathVariable("categoryId") String categoryId,
+    public ResponseEntity<?> editCategory(@PathVariable("categoryId") @NotNull @NotBlank String categoryId,
                                           @Valid @RequestBody Category category) {
         return ResponseEntity.ok(categoriesService.updateCategoryById(new ObjectId(categoryId), category));
     }

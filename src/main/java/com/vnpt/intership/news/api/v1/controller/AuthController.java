@@ -11,10 +11,13 @@ import com.vnpt.intership.news.api.v1.domain.entity.UserEntity;
 import com.vnpt.intership.news.api.v1.service.DeviceService;
 import com.vnpt.intership.news.api.v1.service.UserService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.web.bind.annotation.*;
 
@@ -74,13 +77,14 @@ public class AuthController {
 
     @GetMapping("/logout")
     @SecurityRequirement(name = "BearerAuth")
+    @PreAuthorize("hasAnyRole('ROLE_USER')")
     public void logout(HttpServletRequest request, HttpServletResponse response) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null) {
-            UserEntity userEntity = userService.getCurrentUser();
+            User user = (User) authentication.getPrincipal();
             DeviceMeta deviceMeta = deviceService.extractDevice(request);
             // delete refresh token
-            userService.updateRefreshTokenByUsername(userEntity.getUsername(), deviceMeta);
+            userService.updateRefreshTokenByUsername(user.getUsername(), deviceMeta);
             new SecurityContextLogoutHandler().logout(request, response, authentication);
         }
     }

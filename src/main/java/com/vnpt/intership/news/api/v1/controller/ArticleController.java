@@ -23,6 +23,12 @@ public class ArticleController {
 
     @Autowired
     private ArticleService articleService;
+
+    @GetMapping("{articleId}")
+    public Article getDetailArticle(@PathVariable("articleId") String articleId) {
+        return articleService.getDetailArticle(new ObjectId(articleId));
+    }
+
     @PostMapping( consumes = { MediaType.MULTIPART_FORM_DATA_VALUE },
             produces = MediaType.APPLICATION_JSON_VALUE)
 //    @PreAuthorize("hasAnyRole('ROLE_USER')")

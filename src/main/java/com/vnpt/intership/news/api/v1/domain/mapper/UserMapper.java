@@ -28,8 +28,11 @@ public class UserMapper extends BaseMapper<UserEntity, User> {
     public User convertToDto(UserEntity entity, Object... args) {
         User user = new User();
         if (entity != null) {
-            BeanUtils.copyProperties(entity, user, "roles");
-            user.setRoles(roleMapper.convertToDtoList(entity.getRoles()));
+            BeanUtils.copyProperties(entity, user, "roles", "authIdentity");
+
+//            if (entity.getRoles() != null && !entity.getRoles().isEmpty()) {
+//                user.setRoles(roleMapper.convertToDtoList(entity.getRoles()));
+//            }
         }
         return user;
     }
