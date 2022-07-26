@@ -10,10 +10,12 @@ import javax.annotation.PostConstruct;
 @Component
 public class ArticleMapper extends BaseMapper<ArticleEntity, Article> {
     private CategoriesMapper categoriesMapper;
+    private UserMapper userMapper;
 
     @PostConstruct
     public void init() {
         this.categoriesMapper = new CategoriesMapper();
+        this.userMapper = new UserMapper();
     }
     @Override
     public ArticleEntity convertToEntity(Article dto, Object... args) {
@@ -29,7 +31,8 @@ public class ArticleMapper extends BaseMapper<ArticleEntity, Article> {
     public Article convertToDto(ArticleEntity entity, Object... args) {
         Article article = new Article();
         if (entity != null) {
-            BeanUtils.copyProperties(entity, article, "categories");
+            BeanUtils.copyProperties(entity, article, "categories", "user");
+            article.setUser(userMapper.convertToDto(entity.getUser()));
             article.setCategories(categoriesMapper.convertToDtoList(entity.getCategories()));
         }
         return article;

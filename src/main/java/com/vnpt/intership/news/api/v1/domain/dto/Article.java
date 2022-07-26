@@ -40,7 +40,7 @@ public class Article {
     @Size(max = 1024)
     private String content;
 
-    private UserEntity user;
+    private User user;
 
     private List<Category> categories = new ArrayList<>();
 }

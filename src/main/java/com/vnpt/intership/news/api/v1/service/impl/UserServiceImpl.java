@@ -5,10 +5,10 @@ import com.vnpt.intership.news.api.v1.config.security.JwtProvider;
 import com.vnpt.intership.news.api.v1.domain.dto.request.LoginRequest;
 import com.vnpt.intership.news.api.v1.domain.dto.response.LoginResponse;
 import com.vnpt.intership.news.api.v1.domain.dto.response.TokenRefreshResponse;
-import com.vnpt.intership.news.api.v1.domain.entity.AuthIdentityEntity;
 import com.vnpt.intership.news.api.v1.domain.entity.DeviceMeta;
 import com.vnpt.intership.news.api.v1.domain.entity.RoleEntity;
 import com.vnpt.intership.news.api.v1.domain.entity.UserEntity;
+import com.vnpt.intership.news.api.v1.event.OnSaveRefreshTokenAndDeviceMetaEvent;
 import com.vnpt.intership.news.api.v1.exception.*;
 import com.vnpt.intership.news.api.v1.repository.CustomUserRepository;
 import com.vnpt.intership.news.api.v1.repository.UserRepository;
@@ -16,14 +16,18 @@ import com.vnpt.intership.news.api.v1.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.authentication.*;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import com.vnpt.intership.news.api.v1.domain.dto.request.RegisterRequest;
 import com.vnpt.intership.news.api.v1.repository.RoleRepository;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,18 +66,12 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private CustomUserRepository customUserRepository;
 
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
+
     @Override
     public LoginResponse authentication(LoginRequest loginRequest, DeviceMeta deviceMeta) {
         try {
-            UserEntity userEntity = userRepository.findByUsername(loginRequest.getUsername().trim())
-                    .orElseThrow(() -> new UserNotFoundException("Username or password wrong!"));
-
-            // verify password
-            boolean validPassword = verifyPasswordMatches(loginRequest.getPassword(), userEntity.getPassword());
-            if (!validPassword) {
-                throw  new UserNotFoundException("Username or password wrong!");
-            }
-
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             loginRequest.getUsername().trim(),
@@ -82,46 +80,21 @@ public class UserServiceImpl implements UserService {
             );
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
+            User user = (User) authentication.getPrincipal();
 
-            Map<String, String> res = generatingAccessTokenAndRefreshToken(authentication, userEntity, deviceMeta);
+            HashMap<String, String> res = generatingAccessTokenAndRefreshToken(user, deviceMeta);
 
-            List<String> roles = userEntity.getRoles().stream().map(r -> r.getRoleName().toString())
+            List<String> roles = user.getAuthorities().stream().map(GrantedAuthority::getAuthority)
                     .collect(Collectors.toList());
             return new LoginResponse(res.get("jwt"), res.get("refreshJwt"), loginRequest.getUsername(), roles);
+        } catch (UsernameNotFoundException | BadCredentialsException e) {
+            throw new UserNotFoundException("Username or password wrong!");
+        } catch (CredentialsExpiredException | AccountExpiredException e) {
+            throw new TokenException("Token expired");
         } catch (InterruptedException | ExecutionException e) {
             log.error("Generate Token failed: {}", e.getMessage());
             throw new RuntimeException("Server generate token failed!");
         }
-    }
-
-    @Async("asyncExecutor")
-    @Transactional(rollbackFor = {Exception.class})
-    public void saveRefreshToken(String refreshToken, UserEntity userEntity, DeviceMeta deviceMeta) {
-        AuthIdentityEntity authIdentity = userEntity.getAuthIdentity();
-        if (authIdentity == null) {
-            authIdentity = new AuthIdentityEntity();
-        } else {
-            Set<DeviceMeta> deviceMetas = authIdentity.getDeviceMetas().stream()
-                    .map(device -> {
-                        if (device.getLocation().equals(deviceMeta.getLocation())
-                                && device.getDeviceDetails().equals(deviceMeta.getDeviceDetails())) {
-                            device.setRefreshToken(refreshToken);
-                        }
-                        return device;
-                    }).collect(Collectors.toSet());
-            authIdentity.setDeviceMetas(deviceMetas);
-        }
-
-        deviceMeta.setRefreshToken(refreshToken);
-        authIdentity.getDeviceMetas().add(deviceMeta);
-
-//        authIdentity.setRefreshToken(refreshToken);
-        userEntity.setAuthIdentity(authIdentity);
-        userRepository.save(userEntity);
-    }
-
-    private boolean verifyPasswordMatches(String rawPassword, String encodedPassword) {
-        return passwordEncoder.matches(rawPassword, encodedPassword);
     }
 
     @Override
@@ -137,8 +110,14 @@ public class UserServiceImpl implements UserService {
                 throw new TokenException("Refresh token was expired. Please make a new login request");
             }
 
+            Collection<? extends GrantedAuthority> grantedAuthorities = userEntity.getRoles().stream()
+                    .map(r -> new SimpleGrantedAuthority(r.getRoleName().toString()))
+                    .collect(Collectors.toList());
+
+            User principal = new User(userEntity.getUsername(), userEntity.getPassword(), true, true,
+                    true, true, grantedAuthorities);
             // generating a new access token and refresh token
-            Map<String, String> res = generatingAccessTokenAndRefreshToken(null, userEntity, deviceMeta);
+            HashMap<String, String> res = generatingAccessTokenAndRefreshToken(principal, deviceMeta);
             return new TokenRefreshResponse(res.get("jwt"), res.get("refreshJwt"));
         } catch (InterruptedException | ExecutionException e) {
             log.error("Generate Token failed: {}", e.getMessage());
@@ -146,24 +125,21 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private Map<String, String> generatingAccessTokenAndRefreshToken(Authentication authentication, UserEntity userEntity,
+    private HashMap<String, String> generatingAccessTokenAndRefreshToken(User user,
                                                                      DeviceMeta deviceMeta)
             throws ExecutionException, InterruptedException {
-        Map<String, String> response = new HashMap();
+        HashMap<String, String> response = new HashMap<>();
         CompletableFuture<String> jwt;
         CompletableFuture<String> refreshJwt;
-        if (authentication != null) {
-            jwt = this.jwtProvider.generateJwtToken(authentication, this.jwtExpirationMs);
-            refreshJwt = this.jwtProvider.generateJwtToken(authentication, this.jwtRefreshExpirationMs);
-        } else {
-            jwt = this.jwtProvider.generateJwtToken(userEntity, this.jwtExpirationMs);
-            refreshJwt = this.jwtProvider.generateJwtToken(userEntity, this.jwtRefreshExpirationMs);
-        }
+
+        jwt = this.jwtProvider.generateJwtToken(user, this.jwtExpirationMs);
+        refreshJwt = this.jwtProvider.generateJwtToken(user, this.jwtRefreshExpirationMs);
 
         CompletableFuture.allOf(jwt, refreshJwt).join();
 
         // save refresh jwt to database
-        saveRefreshToken(refreshJwt.get(), userEntity, deviceMeta);
+        deviceMeta.setRefreshToken(refreshJwt.get());
+        eventPublisher.publishEvent(new OnSaveRefreshTokenAndDeviceMetaEvent(user, deviceMeta));
         response.put("jwt", jwt.get());
         response.put("refreshJwt", refreshJwt.get());
         return response;
@@ -172,7 +148,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserEntity getCurrentUser() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String username = null;
+        String username;
         if (principal instanceof UserDetails) {
             username = ((UserDetails) principal).getUsername();
         } else {
@@ -186,11 +162,11 @@ public class UserServiceImpl implements UserService {
     public UserEntity registerNewUserAccount(RegisterRequest registerRequest){
         if (existsByUsername(registerRequest.getUsername())) {
             throw new UserAlreadyExistException("Username already exists");
-        };
+        }
 
         if (existsByEmail(registerRequest.getEmail())) {
             throw new UserAlreadyExistException("Email already exists");
-        };
+        }
 
         UserEntity userEntity = new UserEntity();
         userEntity.setUsername(registerRequest.getUsername());

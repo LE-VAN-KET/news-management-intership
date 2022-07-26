@@ -36,8 +36,6 @@ import java.util.List;
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
 public class WebSecurityConfig {
-    @Autowired
-    private UserDetailServiceImpl userDetailService;
 
     @Autowired
     private UnauthorizedEntryPoint unauthorizedEntryPoint;

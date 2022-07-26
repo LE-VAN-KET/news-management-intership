@@ -31,7 +31,7 @@ public class CategoriesMapper extends BaseMapper<CategoriesEntity, Category> {
         Category category = new Category();
         if (entity != null) {
             BeanUtils.copyProperties(entity, category, "articles");
-            if (entity.getArticles() != null) {
+            if (entity.getArticles() != null && !entity.getArticles().isEmpty()) {
                 category.setArticles(articleMapper.convertToDtoList(entity.getArticles()));
             }
         }

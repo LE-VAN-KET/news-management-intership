@@ -1,7 +1,6 @@
 package com.vnpt.intership.news.api.v1.exception;
 
 import com.vnpt.intership.news.api.v1.common.ErrorCode;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -39,8 +38,8 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
-    @ExceptionHandler(value = { UserNotFoundException.class, UserAlreadyExistException.class,
-            RoleNotFoundException.class })
+    @ExceptionHandler(value = { UserNotFoundException.class, RoleNotFoundException.class,
+            ArticleNotFoundException.class})
     @ResponseBody
     public ResponseEntity<?> handleExceptionChecked(Exception e) {
         log.error("EntityException: {}", e.getMessage());
@@ -73,6 +72,8 @@ public class GlobalExceptionHandler {
         // Hide error details from client, only show in log
         log.error("SERVER ERROR: {}", e.getMessage());
 
+        e.printStackTrace();
+
         ApiExceptionResponse response = new ApiExceptionResponse();
         response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
         response.setTimestamp(LocalDateTime.now());
@@ -81,7 +82,8 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
-    @ExceptionHandler(value = { CategoryException.class, TokenException.class, TokenRefreshException.class })
+    @ExceptionHandler(value = { CategoryException.class, TokenException.class, TokenRefreshException.class,
+            UserAlreadyExistException.class})
     @ResponseBody
     public ResponseEntity<?> handleExceptionBadRequest(Exception e) {
         log.error("Bad request: {}", e.getMessage());
