@@ -5,6 +5,7 @@ import com.vnpt.intership.news.api.v1.service.impl.UserDetailServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.BeanIds;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -84,6 +85,7 @@ public class WebSecurityConfig {
                 .antMatchers("/api/v1/auth/**").permitAll()
                 .antMatchers("/api/v1/categories/**").permitAll()
                 .antMatchers("/api/v1/test/**").permitAll()
+                .antMatchers(HttpMethod.GET,"/api/v1/articles/**").permitAll()
                 .anyRequest().authenticated();
 
         // Add jwt token filter to validate tokens with every request

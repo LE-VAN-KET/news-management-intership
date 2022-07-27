@@ -9,7 +9,7 @@ import java.lang.annotation.*;
 @Constraint(validatedBy = ValidUsernameValidator.class)
 @Documented
 public @interface ValidUsername {
-    String message() default "Username must be between 8 to 20 characters, " +
+    String message() default "Username must be between 6 to 30 characters, " +
             "only contains alphanumeric";
 
     Class<?>[] groups() default {};

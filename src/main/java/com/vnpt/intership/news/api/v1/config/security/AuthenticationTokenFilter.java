@@ -1,10 +1,15 @@
 package com.vnpt.intership.news.api.v1.config.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vnpt.intership.news.api.v1.exception.ApiExceptionResponse;
+import com.vnpt.intership.news.api.v1.exception.GlobalExceptionHandler;
+import com.vnpt.intership.news.api.v1.exception.TokenException;
 import com.vnpt.intership.news.api.v1.service.impl.UserDetailServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,6 +23,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.List;
 
 @Slf4j
@@ -32,6 +38,9 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter {
 
     @Autowired
     private UserDetailServiceImpl userDetailService;
+
+    @Autowired
+    private GlobalExceptionHandler globalExceptionHandler;
 
     /*
     * Filter Per request for validate identity user
@@ -57,6 +66,17 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter {
 
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             }
+        } catch (TokenException e) {
+            ResponseEntity<?> error = globalExceptionHandler.handleExceptionUnauthorized(e);
+            ApiExceptionResponse res = (ApiExceptionResponse) error.getBody();
+            res.setTimestamp(null);
+            response.setStatus(error.getStatusCodeValue());
+            response.setContentType("application/json");
+            ObjectMapper mapper = new ObjectMapper();
+            PrintWriter out = response.getWriter();
+            out.print(mapper.writeValueAsString(res));
+            out.flush();
+            return;
         } catch (Exception ex) {
             log.error("Could not set user authentication in security context: {}", ex.getMessage());
         }

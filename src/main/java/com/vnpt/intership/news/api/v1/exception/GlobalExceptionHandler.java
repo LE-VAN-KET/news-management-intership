@@ -83,7 +83,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(value = { CategoryException.class, TokenException.class, TokenRefreshException.class,
-            UserAlreadyExistException.class})
+            UserAlreadyExistException.class, IllegalArgumentException.class})
     @ResponseBody
     public ResponseEntity<?> handleExceptionBadRequest(Exception e) {
         log.error("Bad request: {}", e.getMessage());
