@@ -1,5 +1,7 @@
 package com.vnpt.intership.news.api.v1.controller;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.vnpt.intership.news.api.v1.domain.dto.Article;
 import com.vnpt.intership.news.api.v1.domain.dto.request.CreateArticle;
 import com.vnpt.intership.news.api.v1.service.ArticleService;
@@ -25,13 +27,13 @@ public class ArticleController {
     private ArticleService articleService;
 
     @GetMapping("{articleId}")
-    public Article getDetailArticle(@PathVariable("articleId") String articleId) {
+    public Article getDetailArticle(@PathVariable("articleId") @Valid @NotNull @NotBlank String articleId) {
         return articleService.getDetailArticle(new ObjectId(articleId));
     }
 
     @PostMapping( consumes = { MediaType.MULTIPART_FORM_DATA_VALUE },
             produces = MediaType.APPLICATION_JSON_VALUE)
-//    @PreAuthorize("hasAnyRole('ROLE_USER')")
+    @PreAuthorize("hasAnyRole('ROLE_USER')")
     public ResponseEntity<?> addArticle(@Valid @RequestPart("article") CreateArticle createArticle,
                                         @RequestPart @Valid @NotNull @NotBlank MultipartFile thumbnail) {
         return ResponseEntity.status(201).body(articleService.addArticle(createArticle, thumbnail));
