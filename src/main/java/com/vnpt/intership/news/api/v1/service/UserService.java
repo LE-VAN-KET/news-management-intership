@@ -2,21 +2,18 @@ package com.vnpt.intership.news.api.v1.service;
 
 import com.vnpt.intership.news.api.v1.domain.dto.User;
 import com.vnpt.intership.news.api.v1.domain.entity.UserEntity;
-import com.vnpt.intership.news.api.v1.exception.UserNotFoundException;
-import org.springframework.transaction.annotation.Transactional;
+import org.bson.types.ObjectId;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface UserService {
 
 
     List<UserEntity> findAll();
 
-    Optional<User> findById(String id);
+    User findById(ObjectId id);
 
     void deleteById(String id);
-
 
 
     User updateUser(User user);
