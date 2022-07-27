@@ -10,7 +10,7 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepository extends MongoRepository<UserEntity, ObjectId> {
-    Optional<User> findById(String id);//may cai nya co san k can viet ra
+    Optional<User> findById(String id);
 
     void deleteById(String id);
 }

@@ -17,8 +17,7 @@ public interface UserService {
 
     void deleteById(String id);
 
-    @Transactional(rollbackFor = {Exception.class, UserNotFoundException.class})
-    User updateById(String id, User user);
+
 
     User updateUser(User user);
 }

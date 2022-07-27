@@ -24,8 +24,5 @@ public class User implements Serializable {
 
     private String password;
 
-    private List<Role> roles = new ArrayList<>(); //sao cai nay la list role em
-    //trong 1 src hoj dua em em clone code ve a anh
-    //tai lieu luc ho dua co bay nhieu a
-    //trong nay ho tra ve 1 cai list em doc tai lieu cung k hieu luon
+    private List<Role> roles = new ArrayList<>();
 }

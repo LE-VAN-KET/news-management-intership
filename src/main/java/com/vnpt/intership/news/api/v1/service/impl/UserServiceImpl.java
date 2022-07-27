@@ -43,28 +43,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional  (rollbackFor = {Exception.class, UserNotFoundException.class})
-    public User updateById(String id, User user) {
-//        // check category id exist
-//        User userEntity = userRepository.findById(id)
-//                .orElseThrow(() -> new UserNotFoundException("User not found with id:" + id));
-//        String categoryKeyParent = category.getParent().getCategoryKey();
-//        if (categoryKeyParent != null && !categoryKeyParent.equals(categoriesEntity.getParent().getCategoryKey())) {
-//            UserEntity parent = categoriesRepository.findByCategoryKey(categoryKeyParent)
-//                    .orElseThrow(() -> new CategoryException("Category Key " + categoryKeyParent + " not found with"));
-//            categoriesEntity.setParent(parent);
-//        }
-//
-//        // update 3 field category
-//        categoriesEntity.setCategoryKey(category.getCategoryKey());
-//        categoriesEntity.setCategoryName(category.getCategoryName());
-//        categoriesEntity.setDescription(category.getDescription());
-//
-//        return categoriesMapper.convertToDto(categoriesRepository.save(categoriesEntity));
-        return null;
-    }
-
-    @Override
     public User updateUser(User user){
         UserEntity userEntity = this.usersRepository.findById(user.getId()).orElse(null);
         User user1 = new User();
@@ -78,7 +56,7 @@ public class UserServiceImpl implements UserService {
             set.add(role);
             userEntity.setEmail(user.getEmail());
 
-            userEntity.setRoles(set); //update user thi lay id cua han thoi pk ah dung roi e
+            userEntity.setRoles(set);
             userEntity.setUsername(user.getUsername());
             userEntity.setPassword(user.getPassword());
         }/// roi do e
