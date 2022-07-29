@@ -17,8 +17,8 @@ public class UserController {
     UserService userService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> list(@PathVariable("id") ObjectId id) {
-        return ResponseEntity.status(HttpStatus.OK).body(userService.findById(id));
+    public ResponseEntity<?> list(@PathVariable("id") String id) {
+        return ResponseEntity.status(HttpStatus.OK).body(userService.findById(new ObjectId(id)));
     }
 
     @PutMapping("edit/{user}")

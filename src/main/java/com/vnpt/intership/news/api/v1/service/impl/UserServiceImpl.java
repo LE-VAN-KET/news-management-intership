@@ -29,8 +29,8 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public User findById(ObjectId id) {
-        UserEntity userEntity = userRepository.findById(id)
+    public User findById(String id) {
+        UserEntity userEntity = userRepository.findById(new ObjectId(id))
                 .orElseThrow(() -> new UserNotFoundException("User was not found.Please checking again!!"));
         User user = new User();
         UserMapper userMapper = new UserMapper();
