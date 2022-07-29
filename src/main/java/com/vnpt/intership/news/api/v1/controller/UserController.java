@@ -25,4 +25,8 @@ public class UserController {
         return ResponseEntity.ok(userService.updateUser(user));
     }
 
+    @PutMapping("delete/{user}")
+    public ResponseEntity<?> delete(@PathVariable("id") String id) {
+        return ResponseEntity.ok(userService.deleteById(id));
+    }
 }
