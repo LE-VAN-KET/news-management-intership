@@ -55,6 +55,7 @@ public class CategoriesServiceImpl implements CategoriesService {
 
     @Override
     public CategoriesEntity findByName(String name) {
+
         return categoriesRepository.findByCategoryName(name);
     }
 

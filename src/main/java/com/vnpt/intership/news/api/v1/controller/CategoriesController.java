@@ -24,10 +24,10 @@ public class CategoriesController {
     @Autowired
     CategoriesService categoriesService;
 
-    @RequestMapping(value = "/deleteCategory",method = RequestMethod.DELETE)
-    public List<CategoriesEntity> deleteCategory(@RequestParam ObjectId id ){
+    @DeleteMapping("{id}")
+    public List<CategoriesEntity> deleteCategory(@PathVariable("id") String id ){
         try {
-            categoriesService.deleteById(id);
+            categoriesService.deleteById(new ObjectId(id));
             return categoriesService.getAll();
         }
         catch (Exception e){

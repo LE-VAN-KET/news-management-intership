@@ -1,5 +1,13 @@
 package com.vnpt.intership.news.api.v1.service.impl;
 
+import com.vnpt.intership.news.api.v1.domain.dto.User;
+import com.vnpt.intership.news.api.v1.domain.entity.UserEntity;
+import com.vnpt.intership.news.api.v1.domain.mapper.UserMapper;
+import com.vnpt.intership.news.api.v1.exception.UserNotFoundException;
+import com.vnpt.intership.news.api.v1.repository.UserRepository;
+import com.vnpt.intership.news.api.v1.service.UserService;
+import org.bson.types.ObjectId;
+import org.springframework.beans.factory.annotation.Autowired;
 import com.vnpt.intership.news.api.v1.common.UserRole;
 import com.vnpt.intership.news.api.v1.config.security.JwtProvider;
 import com.vnpt.intership.news.api.v1.domain.dto.request.LoginRequest;
@@ -7,14 +15,10 @@ import com.vnpt.intership.news.api.v1.domain.dto.response.LoginResponse;
 import com.vnpt.intership.news.api.v1.domain.dto.response.TokenRefreshResponse;
 import com.vnpt.intership.news.api.v1.domain.entity.DeviceMeta;
 import com.vnpt.intership.news.api.v1.domain.entity.RoleEntity;
-import com.vnpt.intership.news.api.v1.domain.entity.UserEntity;
 import com.vnpt.intership.news.api.v1.event.OnSaveRefreshTokenAndDeviceMetaEvent;
 import com.vnpt.intership.news.api.v1.exception.*;
 import com.vnpt.intership.news.api.v1.repository.CustomUserRepository;
-import com.vnpt.intership.news.api.v1.repository.UserRepository;
-import com.vnpt.intership.news.api.v1.service.UserService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.*;
@@ -23,7 +27,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import com.vnpt.intership.news.api.v1.domain.dto.request.RegisterRequest;
 import com.vnpt.intership.news.api.v1.repository.RoleRepository;
@@ -32,12 +35,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 import java.util.*;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
-
 
 @Slf4j
 @Service
@@ -70,6 +74,41 @@ public class UserServiceImpl implements UserService {
     private ApplicationEventPublisher eventPublisher;
 
     @Override
+    public List<UserEntity> findAll() {
+        return userRepository.findAll();
+    }
+
+    @Override
+    public User findById(String id) {
+        UserEntity userEntity = userRepository.findById(new ObjectId(id))
+                .orElseThrow(() -> new UserNotFoundException("User was not found.Please checking again!!"));
+        User user = new User();
+        UserMapper userMapper = new UserMapper();
+        user = userMapper.convertToDto(userEntity, user);
+        return user;
+    }
+
+    @Override
+    public void deleteById(String id) {
+        userRepository.deleteById(id);
+    }
+
+    @Override
+    public User updateUser(String id, User user) {
+        UserEntity userEntity = this.userRepository.findById(new ObjectId(id))
+                .orElseThrow(() -> new UserNotFoundException("User was not found.Please checking again!!"));
+        User user1 = new User();
+
+        UserMapper userMapper = new UserMapper();
+        if (userEntity != null) {
+            userEntity.setEmail(user.getEmail());
+            userEntity.setUsername(user.getUsername());
+        }
+        return userEntity == null ? null : userMapper.convertToDto(this.userRepository.save(userEntity), user1);
+    }
+
+
+    @Override
     public LoginResponse authentication(LoginRequest loginRequest, DeviceMeta deviceMeta) {
         try {
             Authentication authentication = authenticationManager.authenticate(
@@ -80,7 +119,8 @@ public class UserServiceImpl implements UserService {
             );
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            User user = (User) authentication.getPrincipal();
+            org.springframework.security.core.userdetails.User user =
+                    (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
 
             HashMap<String, String> res = generatingAccessTokenAndRefreshToken(user, deviceMeta);
 
@@ -114,7 +154,8 @@ public class UserServiceImpl implements UserService {
                     .map(r -> new SimpleGrantedAuthority(r.getRoleName().toString()))
                     .collect(Collectors.toList());
 
-            User principal = new User(userEntity.getUsername(), userEntity.getPassword(), true, true,
+            org.springframework.security.core.userdetails.User principal = new org.springframework.security.core.userdetails.User(
+                    userEntity.getUsername(), userEntity.getPassword(), true, true,
                     true, true, grantedAuthorities);
             // generating a new access token and refresh token
             HashMap<String, String> res = generatingAccessTokenAndRefreshToken(principal, deviceMeta);
@@ -125,8 +166,8 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    public HashMap<String, String> generatingAccessTokenAndRefreshToken(User user,
-                                                                     DeviceMeta deviceMeta)
+    public HashMap<String, String> generatingAccessTokenAndRefreshToken(org.springframework.security.core.userdetails.User user,
+                                                                        DeviceMeta deviceMeta)
             throws ExecutionException, InterruptedException {
         HashMap<String, String> response = new HashMap<>();
         CompletableFuture<String> jwt;
@@ -199,7 +240,9 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public TokenRefreshResponse resetPassword(String passwordNew, DeviceMeta deviceMeta) {
         try {
-            User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            org.springframework.security.core.userdetails.User user =
+                    (org.springframework.security.core.userdetails.User) SecurityContextHolder.getContext()
+                            .getAuthentication().getPrincipal();
             UserEntity userEntity = userRepository.findByUsername(user.getUsername())
                     .orElseThrow(() -> new UserNotFoundException("Username with: " + user.getUsername() + " not found!"));
 

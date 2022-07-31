@@ -50,7 +50,8 @@ public class WebSecurityConfig {
 
     @Bean
     public WebSecurityCustomizer configure() {
-        return (web) -> web.ignoring().antMatchers("/resources/**")
+        return (web) -> web.ignoring().antMatchers("/resources/templates/**")
+                .antMatchers("/resources/maxmind/**")
                 .antMatchers("/api-docs/**", "/swagger-ui-custom.html", "/swagger-ui/**");
     }
 
