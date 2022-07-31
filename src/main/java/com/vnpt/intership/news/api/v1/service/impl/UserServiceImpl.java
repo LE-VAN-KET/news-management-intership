@@ -44,11 +44,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User updateUser(User user) {
-        UserEntity userEntity = this.usersRepository.findById(user.getId())
+    public User updateUser(String id, User user) {
+        UserEntity userEntity = this.usersRepository.findById(new ObjectId(id))
                 .orElseThrow(() -> new UserNotFoundException("User was not found.Please checking again!!"));
         User user1 = new User();
-        UserEntity userEntity1 = new UserEntity();
 
         UserMapper userMapper = new UserMapper();
         if (userEntity != null) {
