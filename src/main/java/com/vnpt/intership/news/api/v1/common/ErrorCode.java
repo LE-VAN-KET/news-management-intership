@@ -8,5 +8,6 @@ public enum ErrorCode {
     SERVER_ERROR,
     ACCOUNT_LOCKED,
     CONFLICT_ERROR,
-    UNAUTHORIZED
+    UNAUTHORIZED,
+    TOO_MANY_REQUEST
 }

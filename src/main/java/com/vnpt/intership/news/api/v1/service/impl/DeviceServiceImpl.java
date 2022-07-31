@@ -53,6 +53,7 @@ public class DeviceServiceImpl implements DeviceService {
         }
     }
 
+    @Override
     public String extractIp(HttpServletRequest request) {
         String clientIp;
         String clientXForwardedForIp = request.getHeader("x-forwarded-for");

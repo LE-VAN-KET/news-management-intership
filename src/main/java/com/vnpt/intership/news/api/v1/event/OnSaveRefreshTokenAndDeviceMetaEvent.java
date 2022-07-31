@@ -11,8 +11,8 @@ public class OnSaveRefreshTokenAndDeviceMetaEvent extends ApplicationEvent {
     private User user;
     private DeviceMeta deviceMeta;
 
-    public OnSaveRefreshTokenAndDeviceMetaEvent(User user, DeviceMeta deviceMeta) {
-        super(user);
+    public OnSaveRefreshTokenAndDeviceMetaEvent(Object source, User user, DeviceMeta deviceMeta) {
+        super(source);
         this.user = user;
         this.deviceMeta = deviceMeta;
     }

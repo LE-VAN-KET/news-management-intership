@@ -8,4 +8,5 @@ import java.io.IOException;
 
 public interface DeviceService {
     DeviceMeta extractDevice(HttpServletRequest request);
+    String extractIp(HttpServletRequest request);
 }

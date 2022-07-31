@@ -9,6 +9,8 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
+
 @Repository
 public class CustomUserRepository {
 //    @Autowired
@@ -29,5 +31,11 @@ public class CustomUserRepository {
         update.set("authIdentity.deviceMetas.$", deviceMeta);
 
         mongoTemplate.findAndModify(query, update, UserEntity.class);
+    }
+
+    public void findAndUpdatePasswordResetCode(String username, String otp) {
+        Query query = new Query(Criteria.where("username").is(username));
+        Update update = new Update().set("authIdentity.passwordResetCode", otp);
+        mongoTemplate.updateFirst(query, update, UserEntity.class);
     }
 }

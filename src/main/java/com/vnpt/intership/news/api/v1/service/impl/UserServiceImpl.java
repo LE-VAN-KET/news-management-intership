@@ -125,7 +125,7 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private HashMap<String, String> generatingAccessTokenAndRefreshToken(User user,
+    public HashMap<String, String> generatingAccessTokenAndRefreshToken(User user,
                                                                      DeviceMeta deviceMeta)
             throws ExecutionException, InterruptedException {
         HashMap<String, String> response = new HashMap<>();
@@ -139,7 +139,7 @@ public class UserServiceImpl implements UserService {
 
         // save refresh jwt to database
         deviceMeta.setRefreshToken(refreshJwt.get());
-        eventPublisher.publishEvent(new OnSaveRefreshTokenAndDeviceMetaEvent(user, deviceMeta));
+        eventPublisher.publishEvent(new OnSaveRefreshTokenAndDeviceMetaEvent(this, user, deviceMeta));
         response.put("jwt", jwt.get());
         response.put("refreshJwt", refreshJwt.get());
         return response;
@@ -193,5 +193,24 @@ public class UserServiceImpl implements UserService {
     @Transactional(rollbackFor = {Exception.class})
     public void updateRefreshTokenByUsername(String username, DeviceMeta deviceMeta) {
         customUserRepository.findAndUpdateRefreshTokenByUsername(username, deviceMeta);
+    }
+
+    @Override
+    @Transactional
+    public TokenRefreshResponse resetPassword(String passwordNew, DeviceMeta deviceMeta) {
+        try {
+            User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            UserEntity userEntity = userRepository.findByUsername(user.getUsername())
+                    .orElseThrow(() -> new UserNotFoundException("Username with: " + user.getUsername() + " not found!"));
+
+            userEntity.setPassword(passwordEncoder.encode(passwordNew));
+            userRepository.save(userEntity);
+
+            HashMap<String, String> res = generatingAccessTokenAndRefreshToken(user, deviceMeta);
+            return new TokenRefreshResponse(res.get("jwt"), res.get("refreshJwt"));
+        } catch (InterruptedException | ExecutionException e) {
+            log.error("Generate Token failed: {}", e.getMessage());
+            throw new RuntimeException("Server generate token failed!");
+        }
     }
 }

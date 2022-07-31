@@ -7,8 +7,10 @@ import com.vnpt.intership.news.api.v1.domain.entity.DeviceMeta;
 import com.vnpt.intership.news.api.v1.domain.entity.UserEntity;
 import com.vnpt.intership.news.api.v1.domain.dto.request.RegisterRequest;
 import com.vnpt.intership.news.api.v1.exception.UserAlreadyExistException;
+import org.springframework.security.core.userdetails.User;
 
-import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
+import java.util.concurrent.ExecutionException;
 
 public interface UserService {
     LoginResponse authentication(LoginRequest loginRequest, DeviceMeta deviceMeta);
@@ -24,5 +26,7 @@ public interface UserService {
     Boolean existsByEmail(String email);
 
     void updateRefreshTokenByUsername(String username, DeviceMeta deviceMeta);
+
+    TokenRefreshResponse resetPassword(String passwordNew, DeviceMeta deviceMeta);
 
 }

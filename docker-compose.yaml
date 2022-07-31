@@ -44,6 +44,18 @@ services:
             - data4-1:/data1
             - data4-2:/data2
 
+    redis:
+        image: redis:latest
+        hostname: redis
+        environment:
+            - REDIS_PASSWORD=SVTT_CNPT_IT3
+        volumes:
+            - redis_data:/data
+        ports:
+            - "5000:6379"
+
+
+
     nginx:
         image: nginx:1.19.2-alpine
         hostname: nginx
@@ -69,3 +81,5 @@ volumes:
     data3-2:
     data4-1:
     data4-2:
+    redis_data: { }
+
