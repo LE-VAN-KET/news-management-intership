@@ -24,7 +24,7 @@ public class CategoriesController {
     @Autowired
     CategoriesService categoriesService;
 
-    @RequestMapping(value = "/deleteCategory",method = RequestMethod.POST)
+    @RequestMapping(value = "/deleteCategory",method = RequestMethod.DELETE)
     public List<CategoriesEntity> deleteCategory(@RequestParam ObjectId id ){
         try {
             categoriesService.deleteById(id);

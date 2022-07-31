@@ -19,7 +19,7 @@ import java.util.Set;
 @Getter
 @Setter
 @NoArgsConstructor
-public class CategoriesEntity {
+public class CategoriesEntity extends BaseEntity {
     @MongoId
     private ObjectId id;
 

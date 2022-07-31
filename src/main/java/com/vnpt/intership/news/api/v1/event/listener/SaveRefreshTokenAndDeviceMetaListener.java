@@ -8,6 +8,7 @@ import com.vnpt.intership.news.api.v1.exception.UserNotFoundException;
 import com.vnpt.intership.news.api.v1.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
@@ -21,6 +22,7 @@ public class SaveRefreshTokenAndDeviceMetaListener {
     @Autowired
     private UserRepository userRepository;
 
+    @Async
     @EventListener
     @TransactionalEventListener(phase = TransactionPhase.AFTER_ROLLBACK, classes = {Exception.class})
     public void saveRefreshTokenAndDeviceMeta(OnSaveRefreshTokenAndDeviceMetaEvent event) {

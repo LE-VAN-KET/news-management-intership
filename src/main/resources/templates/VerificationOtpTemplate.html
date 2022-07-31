@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Verification code OTP Reset password</title>
+    <style>
+        body {
+            font-family: calibri, 'DejaVu Sans', Arial, Helvetica, sans-serif;
+        }
+
+        h1 {
+            border: solid 1px #000;
+            background-color: #000;
+            text-decoration: none;
+            color: #fff;
+            font-weight: bold;
+            display: block;
+            width: 360px;
+            text-align: center;
+            padding: 10px 0;
+        }
+    </style>
+</head>
+<body>
+<h3>Confirm reset your password</h3>
+<div>Welcome to AwesomeApp</div>
+<p>
+    Your account has been created on our platform; here is your code OTP information
+    To confirm the reset of your password, please copy code OTP on the text 6 digits below
+</p>
+<h1 style="text-align: center; display: inline-block" th:text="${otp}">
+</h1>
+<br>
+<p>
+    Best Regards, <br/>
+    &emsp; <em>The AwesomeApp Team</em>
+</p>
+</body>
+</html>

@@ -6,6 +6,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -49,7 +50,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({DataAccessException.class})
     @ResponseBody
-    public String databaseException() {
+    public String databaseException(Exception e) {
         return "database error";
     }
 
@@ -83,7 +84,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(value = { CategoryException.class, TokenException.class, TokenRefreshException.class,
-            UserAlreadyExistException.class, IllegalArgumentException.class})
+            UserAlreadyExistException.class, IllegalArgumentException.class, OTPException.class})
     @ResponseBody
     public ResponseEntity<?> handleExceptionBadRequest(Exception e) {
         log.error("Bad request: {}", e.getMessage());
@@ -97,6 +98,20 @@ public class GlobalExceptionHandler {
         log.error("Unauthorized request: {}", e.getMessage());
         ApiExceptionResponse response = mappingResponseException(e, ErrorCode.UNAUTHORIZED, HttpStatus.UNAUTHORIZED);
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiExceptionResponse> handleAccessDeniedException(AccessDeniedException ex, WebRequest request) {
+        ApiExceptionResponse response = mappingResponseException(ex, ErrorCode.ACCESS_DENIED,
+                HttpStatus.FORBIDDEN);
+        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(TooManyRequestException.class)
+    public ResponseEntity<ApiExceptionResponse> handleTooManyRequestException(TooManyRequestException ex) {
+        ApiExceptionResponse response = mappingResponseException(ex, ErrorCode.TOO_MANY_REQUEST,
+                HttpStatus.TOO_MANY_REQUESTS);
+        return new ResponseEntity<>(response, HttpStatus.TOO_MANY_REQUESTS);
     }
 
     private ApiExceptionResponse mappingResponseException(Exception e, ErrorCode code, HttpStatus status) {

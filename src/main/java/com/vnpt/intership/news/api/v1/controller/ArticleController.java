@@ -1,7 +1,5 @@
 package com.vnpt.intership.news.api.v1.controller;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.vnpt.intership.news.api.v1.domain.dto.Article;
 import com.vnpt.intership.news.api.v1.domain.dto.request.CreateArticle;
 import com.vnpt.intership.news.api.v1.service.ArticleService;

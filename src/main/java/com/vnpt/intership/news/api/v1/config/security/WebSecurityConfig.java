@@ -20,7 +20,9 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -69,9 +71,13 @@ public class WebSecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        // enable cors and disable CSRF
-        http = http.cors().and().csrf().disable();
+//        http.headers()
+//                .contentSecurityPolicy("script-src 'self' https://domain.example.com; " +
+//                        "object-src https://domain.example.com; report-uri /csp-report-endpoint/");
 
+        // enable cors and prevent CSRF
+//        http = http.cors().and().csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()).and();
+        http = http.cors().and().csrf().disable();
         // set session management stateless
         http = http.sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS).and();
@@ -86,7 +92,8 @@ public class WebSecurityConfig {
                 .antMatchers("/api/v1/categories/**").permitAll()
                 .antMatchers("/api/v1/test/**").permitAll()
                 .antMatchers(HttpMethod.GET,"/api/v1/articles/**").permitAll()
-                .anyRequest().authenticated();
+                .anyRequest().authenticated().and()
+                .logout().invalidateHttpSession(true).deleteCookies("JSESSIONID");
 
         // Add jwt token filter to validate tokens with every request
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
