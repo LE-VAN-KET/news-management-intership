@@ -1,5 +1,6 @@
 package com.vnpt.intership.news.api.v1.exception;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.vnpt.intership.news.api.v1.common.ErrorCode;
 import lombok.Getter;
@@ -17,6 +18,8 @@ public class ApiExceptionResponse {
     private ErrorCode code;
     private String message;
     private int status;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime timestamp;
     private List<ApiError> errors;
 

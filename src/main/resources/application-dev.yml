@@ -22,37 +22,69 @@ spring:
             auto-index-creation: true
 
     # Config properties Mailer
-#    mail:
-#        host: smtp.gmail.com
-#        port: 587
-#        username: xxx
-#        password: xxx
-#        properties:
-#            mail:
-#                smtp:
-#                    auth: true
-#                    starttls:
-#                        enable:true
-#                debug: true
+    mail:
+        host: smtp.gmail.com
+        port: 587
+        username: vanhoang1512001@gmail.com
+        password: ccsfheygfbxcvzol
+        properties:
+            mail:
+                smtp:
+                    auth: true
+                    starttls:
+                        enable: true
+                        required: true
+                debug: true
+
+    servlet:
+        multipart:
+            max-file-size: 2MB
+            enabled: true
 
     # Config properties Redis
     cache:
         type: redis
+        redis:
+            cache-null-values: false
+            time-to-live: 100000
+            use-key-prefix: true
     redis:
-        host: redis-11485.c295.ap-southeast-1-1.ec2.cloud.redislabs.com
-        password: Ket1512001
-        username: default
-        port: 11485
+        database: 0
+        host: localhost
+        port: 5000
+        password: SVTT_VNPT_IT3
+
 
 # SECURITY Properties
 security:
     jwt:
         token:
-            secret-key: vnptInternshipSecretKey
-            expirationMs: 600
+            secret-key: JWTSuperSecretKey
+            expirationMs: 300000  # 5 minutes
         refreshtoken:
-            expirationMs: 604800
+            expirationMs: 604800000 # 7 days
 
 # JWT
-com.app.JWT_AUTH_HEADER: Authorization
-com.app.token.prefix: Bearer
+com:
+    app:
+        JWT_AUTH_HEADER: Authorization
+        token:
+            prefix: Bearer
+
+keystore:
+    password: Ket0328560055
+
+# Minio
+minio:
+    bucket:
+        name: minio-uploads-image-news-post
+    access:
+        key: admin
+        secret: password@123
+    url: http://127.0.0.1:9000
+
+prefixOtpCountHit: "otp:hit:"
+prefixOtp: "otp:"
+prefixApi: "api:"
+MAX_REQUEST_VALIDATE_PER_OTP: 5
+MAX_REQUEST_SEND_OTP_PER_HOURS: 10

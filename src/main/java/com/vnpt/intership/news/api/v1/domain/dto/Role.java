@@ -17,7 +17,7 @@ import java.util.List;
 public class Role {
     private ObjectId id;
 
-    private UserRole roleName;
+    private String roleName;
 
     private String descriptions;
 
