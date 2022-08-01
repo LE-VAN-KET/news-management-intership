@@ -102,6 +102,12 @@
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.11.0</version>
+        </dependency>
+
 <!--        Testing -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -116,12 +122,13 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.12</version>
+            <version>4.13.1</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
 
     <build>
+        <finalName>backend-springboot-web-article</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

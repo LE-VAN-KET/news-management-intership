@@ -5,10 +5,11 @@ import com.vnpt.intership.news.api.v1.domain.entity.RoleEntity;
 import com.vnpt.intership.news.api.v1.repository.RoleRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.mongodb.config.EnableMongoAuditing;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.List;
 

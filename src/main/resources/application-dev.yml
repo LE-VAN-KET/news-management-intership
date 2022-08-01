@@ -50,8 +50,8 @@ spring:
             use-key-prefix: true
     redis:
         database: 0
-        host: localhost
-        port: 5000
+        host: ${REDIS_HOST:localhost}
+        port: ${REDIS_PORT:5000}
         password: SVTT_VNPT_IT3
 
 
@@ -81,7 +81,7 @@ minio:
     access:
         key: admin
         secret: password@123
-    url: http://127.0.0.1:9000
+    url: ${MINIO_URL:http://localhost:9000}
 
 prefixOtpCountHit: "otp:hit:"
 prefixOtp: "otp:"

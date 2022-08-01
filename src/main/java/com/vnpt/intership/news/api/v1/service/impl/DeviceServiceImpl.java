@@ -63,8 +63,20 @@ public class DeviceServiceImpl implements DeviceService {
             clientIp = request.getRemoteAddr();
         }
 
-        if ("0:0:0:0:0:0:0:1".equals(clientIp) || "127.0.0.1".equals(clientIp)) {
+        clientIp = "172.30.0.1";
+
+
+        if ("0:0:0:0:0:0:0:1".equals(clientIp)) {
             clientIp = "20.205.243.166"; // test localhost
+        } else {
+            String[] splitIp= clientIp.split("\\.");
+            int startIp = Integer.parseInt(splitIp[0]);
+            int secondPartIP = Integer.parseInt(splitIp[1]);
+            if ((startIp == 172 && (secondPartIP >= 16 && secondPartIP <= 31))
+                    || startIp == 10 || (startIp == 192 && secondPartIP == 168)) {
+                // check ip private testing
+                clientIp = "20.205.243.166"; // test localhost
+            }
         }
 
         return clientIp;

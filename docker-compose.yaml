@@ -44,9 +44,9 @@ services:
             - data4-1:/data1
             - data4-2:/data2
 
-    redis:
+    redis1:
         image: redis:latest
-        hostname: redis
+        hostname: redis1
         environment:
             - REDIS_PASSWORD=SVTT_CNPT_IT3
         volumes:
@@ -54,7 +54,25 @@ services:
         ports:
             - "5000:6379"
 
-
+    backend:
+        container_name: spring-boot-api
+        image: spring-boot-api-web-article:test
+        restart: always
+        build:
+            context: ./
+            dockerfile: ./Dockerfile
+        ports:
+            - "8080:8080"
+        environment:
+            - MINIO_URL=http://nginx:9000
+            - REDIS_HOST=redis1
+            - REDIS_PORT=6379
+        depends_on:
+            - redis1
+            - nginx
+        links:
+            - nginx
+            - redis1
 
     nginx:
         image: nginx:1.19.2-alpine
@@ -69,6 +87,7 @@ services:
             - minio2
             - minio3
             - minio4
+
 
 ## By default, this config uses default local driver,
 ## For custom volumes replace with volume driver configuration.
